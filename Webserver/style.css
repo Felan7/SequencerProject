@@ -1,0 +1,47 @@
+html {
+    height: 100%;
+}
+body {
+    min-height: 100%;
+}
+
+
+#label-output-primary{
+    color: tomato;
+}
+
+#label-output-secondary{
+    color: cornflowerblue;
+}
+
+
+body{ background-color:gray; }
+
+#svgContainer { 
+	z-index: -10;
+	position:absolute;
+	background-color:silver;
+	opacity: 0.5;
+}
+
+
+#teal{
+ 	background-color:teal;
+
+}
+#orange{
+	background-color: orange; 
+}
+
+#red{
+	background-color:red;
+}
+#aqua{
+	background-color:aqua;
+}
+#purple{
+	background-color:purple;
+}
+#green{
+	background-color: green;
+}
