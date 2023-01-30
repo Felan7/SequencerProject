@@ -4,7 +4,9 @@
 #include <SimpleStepNode.h>
 
 #include <WiFi.h>
-#include <WebServer.h>
+#include <ESPAsyncWebServer.h>
+
+#include "SPIFFS.h" //internal storage
 
 // Nodes
 Node seqCurrentNode;
@@ -27,9 +29,9 @@ const int outputPinGate = 17;    // TODO: find real pin number
 String header;
 
 // SSID & Password
-const char *ssid = "ESP32";     // Enter your SSID here
+const char *ssid = "ESP32";      // Enter your SSID here
 const char *password = "secret"; // Enter your Password here
-WebServer server(80);           // Object of WebServer(HTTP port, 80 is default)
+AsyncWebServer server(80);       // Object of WebServer(HTTP port, 80 is default)
 
 // IP Address details
 IPAddress local_ip(192, 168, 1, 1);
@@ -102,13 +104,11 @@ String HTML = "<!DOCTYPE html>\
 </body>\
 </html>";
 
-// Handle root url (/)
-void handle_root()
+// Replaces placeholder with LED state value
+String processor(const String &var)
 {
-  server.send(200, "text/html", HTML);
+  return String();
 }
-
-
 
 /**
  * @brief Arduino Setup function
@@ -117,10 +117,10 @@ void handle_root()
 void setup()
 {
   pinMode(resetPin, INPUT);
- attachInterrupt(resetPin, reset, RISING);
+  attachInterrupt(resetPin, reset, RISING);
 
   pinMode(stepPin, INPUT);
- attachInterrupt(stepPin, step, RISING);
+  attachInterrupt(stepPin, step, RISING);
 
   pinMode(outputPinA, OUTPUT);
   pinMode(outputPinB, OUTPUT);
@@ -128,21 +128,28 @@ void setup()
   pinMode(outputPinGate, OUTPUT);
 
   Serial.begin(115200);
-  Serial.print("Hello");
+  Serial.println("Hello");
+
+  // Initialize SPIFFS
+  if (!SPIFFS.begin(true))
+  {
+    Serial.println("ERROR: An Error has occurred while mounting SPIFFS.");
+    return;
+  }
 
   // Create SoftAP
   WiFi.softAP(ssid, password);
   WiFi.softAPConfig(local_ip, gateway, subnet);
 
-
-  Serial.print("Connect to My access point: ");
+  Serial.print("LOG: SSID=");
   Serial.println(ssid);
 
-  server.on("/", handle_root);
+  // Route for root / web page
+  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
+            { request->send(SPIFFS, "/index.html"); });
 
   server.begin();
-  Serial.println("HTTP server started");
-  delay(100);
+  Serial.println("LOG: HTTP server started");
 }
 
 /**
@@ -151,8 +158,4 @@ void setup()
  */
 void loop()
 {
-
-  server.handleClient();
 }
-
-
