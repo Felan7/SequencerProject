@@ -43,10 +43,6 @@ function drop(ev) {
     return returnString;
   }
 
-  console.log(formatNumber(2.1));
-  console.log(formatNumber(11.6));
-  console.log(formatNumber(-2.4));
-  console.log(formatNumber(-12.2));
 
   values = { a: -12.34, b: 4.3, trigger: true, gate: false };
   function createNodeCard(id, values) {
@@ -125,8 +121,8 @@ function drop(ev) {
     newRow.classList.add("h-100");
     for (let indexCoulumn = 0; indexCoulumn < columnCount; indexCoulumn++) {
       const newColumn = document.createElement("div");
-      newColumn.classList.add("col");
-      newColumn.classList.add("border");
+      newColumn.classList.add("col", "border", "m-1");
+
       newColumn.style.minHeight = "16px";
       //newColumn.innerHTML = indexRow + " " + indexCoulumn;
       newColumn.ondrop = function () {

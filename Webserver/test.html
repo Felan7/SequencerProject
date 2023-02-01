@@ -16,7 +16,18 @@
   </head>
   <body>
     <div id="svgContainer">
-      <svg id="svg1" width="0" height="0"></svg>
+      <svg id="svg1" width="0" height="0">
+        <defs>
+          <marker id="pointer" markerWidth="8" markerHeight="4" 
+          refX="7" refY="5" orient="auto" >
+                <polyline points="1 1, 8 5, 1 8" />
+            </marker>
+            <marker id="start" markerWidth="2" markerHeight="16" 
+            refX="-1" refY="4" orient="auto" >
+            <line x1="0" y1="-8" x2="0" y2="8" style="stroke:black;stroke-width:2" />
+              </marker>
+        </defs>
+      </svg>
     </div>
 
     <div id="outer" class="container-fluid h-100">

@@ -100,9 +100,11 @@ function createPath(id, parentId) {
     newPath.setAttributeNS(null, "id", id);  
     newPath.setAttributeNS(null, "d", "M0 0");  
     newPath.setAttributeNS(null, "stroke", "black"); 
-    newPath.setAttributeNS(null, "stroke-width", "8px");  
+    newPath.setAttributeNS(null, "stroke-width", "3px");  
     newPath.setAttributeNS(null, "opacity", 1);  
     newPath.setAttributeNS(null, "fill", "none");
+    newPath.setAttributeNS(null, "marker-end", "url(#pointer)");
+    newPath.setAttributeNS(null, "marker-start", "url(#start)");
 
     parentElement.appendChild(newPath);
 

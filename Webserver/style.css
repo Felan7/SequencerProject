@@ -5,6 +5,9 @@ body {
     min-height: 100%;
 }
 
+div {
+	opacity: 90%;
+}
 
 #label-output-primary{
     color: tomato;
