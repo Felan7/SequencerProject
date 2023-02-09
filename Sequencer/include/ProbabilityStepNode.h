@@ -10,8 +10,6 @@
 class ProbabilityStepNode : public Node
 {
 private:
-    Node nextNodeA;
-    Node nextNodeB;
     int probability; // Probability of A on a scale of 0 to 100
 
     /**
@@ -41,7 +39,7 @@ public:
      * @param initProbability The likeliness of initValueA beeing the next Node
      *
      */
-    ProbabilityStepNode(double initValueA, double initValueB, bool initGate, bool initTrigger, Node *initNextNodeA, Node *initNextNode, double initProbability);
+    ProbabilityStepNode(double initValueA = 0, double initValueB = 0, bool initGate = false, bool initTrigger = false, Node *initNextNodeA = NULL, Node *initNextNode = NULL, double initProbability = 50);
 };
 
 #endif

@@ -48,7 +48,7 @@ public:
      * @param initN The internal, fixed Number n. Can be used for comparrisons.
      * @param initMargin The margin for equal checks (Calculated: abs(x - y) < margin)
      */
-    ConditionalStepNode(double initValueA, double initValueB, bool initGate, bool initTrigger, Node *initNextNodeA, Node *initNextNodeB, conditionalTypes initConditionalType, double initN, double initMargin);
+    ConditionalStepNode(double initValueA = 0, double initValueB = 0, bool initGate = false, bool initTrigger = false, Node *initNextNodeA = NULL, Node *initNextNodeB = NULL, conditionalTypes initConditionalType = X_EQUALS_Y, double initN = 0, double initMargin = 0);
 };
 
 #endif
