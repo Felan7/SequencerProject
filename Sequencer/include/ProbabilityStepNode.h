@@ -41,7 +41,7 @@ public:
      * @param initProbability The likeliness of initValueA beeing the next Node
      *
      */
-    ProbabilityStepNode(bool initGate, bool initTrigger, double initValueA, double initValueB, Node initNextNodeA, Node initNextNode, double initProbability);
+    ProbabilityStepNode(double initValueA, double initValueB, bool initGate, bool initTrigger, Node *initNextNodeA, Node *initNextNode, double initProbability);
 };
 
 #endif

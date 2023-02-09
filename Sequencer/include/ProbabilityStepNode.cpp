@@ -18,13 +18,13 @@ Node ProbabilityStepNode::getNextNode()
     }
 }
 
-ProbabilityStepNode::ProbabilityStepNode(bool initGate, bool initTrigger, double initValueA, double initValueB, Node initNextNodeA, Node initNextNodeB, double initProbability)
+ProbabilityStepNode::ProbabilityStepNode(double initValueA, double initValueB, bool initGate, bool initTrigger, Node *initNextNodeA, Node *initNextNodeB, double initProbability)
 {
     values.gate = initGate;
     values.trigger = initTrigger;
     values.valueA = initValueA;
     values.valueB = initValueB;
-    nextNodeA = initNextNodeA;
-    nextNodeB = initNextNodeB;
+    nextNodes[0] = initNextNodeA;
+    nextNodes[1] = initNextNodeB;
     probability = initProbability;
 }

@@ -5,16 +5,16 @@ bool ConditionalStepNode::evaluateCondition(double x, double y)
 {
     switch (conditionalType)
     {
-    case X_EQUALLS_Y:
+    case X_EQUALS_Y:
         return (abs(x - y) < margin);
 
         break;
 
-    case X_EQUALLS_N:
+    case X_EQUALS_N:
         return (abs(x - n) < margin);
         break;
 
-    case Y_EQUALLS_N:
+    case Y_EQUALS_N:
         return (abs(y - n) < margin);
         break;
 
@@ -57,22 +57,22 @@ Node ConditionalStepNode::getNextNode()
 
     if (evaluateCondition(x, y))
     {
-        return nextNodeA;
+        return *nextNodes[0];
     }
     else
     {
-        return nextNodeB;
+        return *nextNodes[1];
     }
 }
 
-ConditionalStepNode::ConditionalStepNode(bool initGate, bool initTrigger, double initValueA, double initValueB, Node initNextNodeA, Node initNextNodeB, conditonalTypes initConditionalType, double initN, double initMargin)
+ConditionalStepNode::ConditionalStepNode(double initValueA, double initValueB, bool initGate, bool initTrigger, Node *initNextNodeA, Node *initNextNodeB, conditionalTypes initConditionalType, double initN, double initMargin)
 {
     values.gate = initGate;
     values.trigger = initTrigger;
     values.valueA = initValueA;
     values.valueB = initValueB;
-    nextNodeA = initNextNodeA;
-    nextNodeB = initNextNodeB;
+    nextNodes[0] = initNextNodeA;
+    nextNodes[1] = initNextNodeB;
     conditionalType = initConditionalType;
     n = initN;
     margin = initMargin;

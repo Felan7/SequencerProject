@@ -4,14 +4,14 @@
 #include <Node.h>
 
 /**
- * @brief A enumaration of the diffrent types of conditions to be checked to determine the next Node.
+ * @brief A enumeration of the different types of conditions to be checked to determine the next Node.
  *
  */
-enum conditonalTypes
+enum conditionalTypes
 {
-    X_EQUALLS_Y,
-    X_EQUALLS_N,
-    Y_EQUALLS_N,
+    X_EQUALS_Y,
+    X_EQUALS_N,
+    Y_EQUALS_N,
     X_SMALLER_Y,
     X_SMALLER_N,
     X_GREATER_N,
@@ -26,9 +26,7 @@ enum conditonalTypes
 class ConditionalStepNode : public Node
 {
 private:
-    Node nextNodeA;
-    Node nextNodeB;
-    conditonalTypes conditionalType;
+    conditionalTypes conditionalType;
     double margin;
     double n; // internal number n for comparison
 
@@ -50,7 +48,7 @@ public:
      * @param initN The internal, fixed Number n. Can be used for comparrisons.
      * @param initMargin The margin for equal checks (Calculated: abs(x - y) < margin)
      */
-    ConditionalStepNode(bool initGate, bool initTrigger, double initValueA, double initValueB, Node initNextNodeA, Node initNextNodeB, conditonalTypes initConditionalType, double initN, double initMargin);
+    ConditionalStepNode(double initValueA, double initValueB, bool initGate, bool initTrigger, Node *initNextNodeA, Node *initNextNodeB, conditionalTypes initConditionalType, double initN, double initMargin);
 };
 
 #endif
