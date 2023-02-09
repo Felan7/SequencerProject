@@ -1,7 +1,6 @@
 #include <Arduino.h>
 
 #include <Node.h>
-#include <SimpleStepNode.h>
 
 #include <WiFi.h>
 #include <ESPAsyncWebServer.h>
