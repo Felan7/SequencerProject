@@ -43,9 +43,18 @@ function drop(ev) {
     return returnString;
   }
 
+  function randomInt(upper){
+    return Math.floor(Math.random() * upper)
+  }
+  function randomColor(){
+    return "rgb(" + randomInt(255) + "," + randomInt(255) + "," + randomInt(255) + ")"
+  }
 
   values = { a: -12.34, b: 4.3, trigger: true, gate: false };
   function createNodeCard(id, values) {
+
+    var color = randomColor();
+
     const newCard = document.createElement("div");
 
     newCard.id = id;
@@ -53,11 +62,15 @@ function drop(ev) {
     newCard.ondragstart = function () {
       drag(event);
     };
-    newCard.classList.add("col", "card", "m-1");
+    newCard.onclick = function () {
+      console.log(newCard.id);
+    }
+    newCard.classList.add("col", "card", "m-1", "border", "border-dark", "border-2");
 
     const newCardHeader = document.createElement("header");
-    newCardHeader.classList.add("card-header");
-    newCardHeader.innerHTML = id;
+    newCardHeader.classList.add("card-header", "p-1");
+    newCardHeader.innerHTML = "<span class='badge rounded-pill' style='background-color: " + color + "'>&nbsp</span> " + id;
+
     const newCardBody = document.createElement("div");
     newCardBody.classList.add("card-body", "p-1");
     newCardBody.style.fontFamily = "monospace";
@@ -106,24 +119,24 @@ function drop(ev) {
     return newCard;
   }
 
-  const colorNames = ["teal", "red", "green", "purple", "orange", "aqua"];
+  const colorNames = ["1", "2", "3", "4", "5", "6"];
   colorNames.forEach((element) => {
     document
       .getElementById("leRow")
       .appendChild(createNodeCard(element, values));
   });
 
-  const rowCount = 5;
-  const columnCount = 5;
+  const rowCount = 10;
+  const columnCount = 6;
   for (let indexRow = 0; indexRow < rowCount; indexRow++) {
     const newRow = document.createElement("div");
     newRow.classList.add("row");
     newRow.classList.add("h-100");
     for (let indexCoulumn = 0; indexCoulumn < columnCount; indexCoulumn++) {
       const newColumn = document.createElement("div");
-      newColumn.classList.add("col", "border", "m-1");
+      newColumn.classList.add("col", "border", "m-2", "p-0");
 
-      newColumn.style.minHeight = "16px";
+      newColumn.style.minHeight = "4em";
       //newColumn.innerHTML = indexRow + " " + indexCoulumn;
       newColumn.ondrop = function () {
         drop(event);

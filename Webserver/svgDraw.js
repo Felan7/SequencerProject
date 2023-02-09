@@ -18,8 +18,8 @@ function absolute(x) {
  * @author alojzije https://gist.github.com/alojzije/11127839
  */
 function drawPath(svg, path, startX, startY, endX, endY) {
-    // get the path's stroke width (if one wanted to be  really precize, one could use half the stroke size)
-    var stroke =  parseFloat(path.attr("stroke-width"));
+    // get the path's stroke width (if one wanted to be  really precise, one could use half the stroke size)
+    var stroke = parseFloat(path.attr("stroke-width"));
     // check if the svg is big enough to draw the path, if not, set heigh/width
     if (svg.attr("height") <  endY)                 svg.attr("height", endY);
     if (svg.attr("width" ) < (startX + stroke) )    svg.attr("width", (startX + stroke));
@@ -59,29 +59,23 @@ function drawPath(svg, path, startX, startY, endX, endY) {
 function connectElements(svg, path, startElem, endElem) {
     var svgContainer= $("#svgContainer");
 
-    // if first element is lower than the second, swap!
-    if(startElem.offset().top > endElem.offset().top){
-        var temp = startElem;
-        startElem = endElem;
-        endElem = temp;
-    }
-
     // get (top, left) corner coordinates of the svg container   
     var svgTop  = svgContainer.offset().top;
     var svgLeft = svgContainer.offset().left;
 
     // get (top, left) coordinates for the two elements
     var startCoord = startElem.offset();
+
     var endCoord   = endElem.offset();
 
     // calculate path's start (x,y)  coords
     // we want the x coordinate to visually result in the element's mid point
-    var startX = startCoord.left + 0.5*startElem.outerWidth() - svgLeft;    // x = left offset + 0.5*width - svg's left offset
-    var startY = startCoord.top  + startElem.outerHeight() - svgTop;        // y = top offset + height - svg's top offset
+    var startX = startCoord.left + startElem.outerWidth() + 4;    // x = left offset + 0.5*width - svg's left offset
+    var startY = startCoord.top  + 0.5 * startElem.outerHeight() - svgTop;        // y = top offset + height - svg's top offset
 
         // calculate path's end (x,y) coords
-    var endX = endCoord.left + 0.5*endElem.outerWidth() - svgLeft;
-    var endY = endCoord.top  - svgTop;
+    var endX = endCoord.left - svgLeft;
+    var endY = endCoord.top  + 0.5 * endElem.outerHeight() - svgTop;
 
     // call function for drawing the path
     drawPath(svg, path, startX, startY, endX, endY);
@@ -126,13 +120,11 @@ function createPaths(n, parentId, startingIndex = 0) {
  * A list of connections to be drawn.
  */
 var connectionsList = [
-    {"from": "teal", "to": "orange"},
-    {"from": "red", "to": "green"},
-    {"from": "teal", "to": "aqua"},
-    {"from": "red", "to": "aqua"},
-    {"from": "red", "to": "aqua"},
-    {"from": "purple", "to": "teal"},
-    {"from": "orange", "to": "green"},
+    {"from": "1", "to": "2"},
+    {"from": "2", "to": "3"},
+    {"from": "3", "to": "4"},
+    {"from": "4", "to": "5"},  
+    {"from": "5", "to": "6"},
 ];
 
 /**
@@ -158,7 +150,7 @@ function connectAll(parentId) {
     $("#" + parentId).attr("width", "0");
 
     //find out how many paths and connections we have
-    const pathCount = document.getElementById(parentId).childElementCount;
+    const pathCount = document.getElementById(parentId).childElementCount - 1;//TODO: take only <path> children into account 
     const connectionsCount = connectionsList.length
 
     if (pathCount < connectionsCount) {
