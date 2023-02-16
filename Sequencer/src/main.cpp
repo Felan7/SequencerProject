@@ -6,6 +6,7 @@
 #include <ESPAsyncWebServer.h>
 
 #include "SPIFFS.h" //internal storage
+#include "SPI.h"    //SPI communication
 
 // Nodes
 Node seqCurrentNode;
@@ -23,9 +24,13 @@ const int outputPinA = 14;       // TODO: find real pin number
 const int outputPinB = 15;       // TODO: find real pin number
 const int outputPinTrigger = 16; // TODO: find real pin number
 const int outputPinGate = 17;    // TODO: find real pin number
+const int chipSelectPin = 18;
 
 // Variable to store the HTTP request
 String header;
+
+// SPI
+SPIClass *hspi = NULL;
 
 // SSID & Password
 const char *ssid = "ESP32";      // Enter your SSID here
@@ -74,6 +79,41 @@ void outputData()
   }
 }
 
+word buildWord(word value, bool writeToB = false)
+{
+  if (value > 1023)
+  {
+    value = 1023;
+  }
+
+  // B BUF NOT_GAIN NOT_SHDN
+  word mcp_configuration = 0;
+  if (writeToB)
+  {
+    // write to b
+    mcp_configuration = B11010000 << 8;
+  }
+  else
+  {
+    // write to a
+    mcp_configuration = B01110000 << 8;
+  }
+  word returnValue = value << 2;
+
+  returnValue += mcp_configuration;
+
+  return returnValue;
+}
+
+void sendWord(word data)
+{
+  digitalWrite(chipSelectPin, LOW); // activate DAC Communication
+
+  hspi->transfer16(data);
+
+  digitalWrite(chipSelectPin, HIGH); // deactivate DAC Communication
+}
+
 /**
  * @brief Interupt function for the step Input
  * Switches to the nextNode
@@ -109,6 +149,8 @@ String processor(const String &var)
   return String();
 }
 
+const int testPin1 = 34;
+const int testPin2 = 35;
 /**
  * @brief Arduino Setup function
  * "put your setup code here, to run once:"
@@ -121,10 +163,14 @@ void setup()
   pinMode(stepPin, INPUT);
   attachInterrupt(stepPin, step, RISING);
 
+  pinMode(testPin1, INPUT);
+  pinMode(testPin2, INPUT);
+
   pinMode(outputPinA, OUTPUT);
   pinMode(outputPinB, OUTPUT);
   pinMode(outputPinTrigger, OUTPUT);
   pinMode(outputPinGate, OUTPUT);
+  pinMode(chipSelectPin, OUTPUT);
 
   Serial.begin(115200);
   Serial.println("Hello");
@@ -135,6 +181,11 @@ void setup()
     Serial.println("ERROR: An Error has occurred while mounting SPIFFS.");
     return;
   }
+
+  // SPI
+  hspi = new SPIClass(HSPI);
+  hspi->begin(); // Begin SPI Communication
+  hspi->setBitOrder(MSBFIRST);
 
   // Create SoftAP
   WiFi.softAP(ssid, password);
@@ -152,9 +203,16 @@ void setup()
 }
 
 /**
- * @brief Ardunio loop function
+ * @brief Arduino loop function
  * "put your main code here, to run repeatedly:"
  */
 void loop()
 {
+  int sensorValue = analogRead(testPin1) / 4;
+  Serial.print("in=");
+  Serial.print(sensorValue);
+  Serial.print(" out=");
+  sendWord(buildWord(sensorValue));
+  Serial.println(analogRead(testPin2));
+  delay(1000);
 }
