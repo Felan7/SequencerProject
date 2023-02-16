@@ -294,14 +294,7 @@ function createPaths(n, parentId, startingIndex = 0) {
 /**
  * A list of connections to be drawn.
  */
-var connectionsList = [
-  { from: "1", to: "2" },
-  { from: "2", to: "3" },
-  { from: "3", to: "4" },
-  { from: "4", to: "5" },
-  { from: "5", to: "6" },
-  { from: "6", to: "6" },
-];
+var connectionsList = [];
 
 /**
  * Adds a connection to {@link connectionsList}.
@@ -311,6 +304,7 @@ var connectionsList = [
 function addConection(from, to) {
   connectionsList.push({ from: from, to: to });
   console.log(connectionsList);
+  connectAll("svg1");
 }
 
 //TO_DO: Refactor rename

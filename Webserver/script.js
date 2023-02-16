@@ -1,4 +1,7 @@
 const nodes = [];
+var nextFreeId = 1;
+
+// $("#side-menu").hide();
 
 function linkSliderToNumberInput(sliderId, numberId) {
   var slider = document.getElementById(sliderId);
@@ -77,8 +80,10 @@ function randomColor() {
   );
 }
 
-values = { a: -12.34, b: 4.3, trigger: true, gate: false };
-function createNodeCard(id, values) {
+function createNodeCard(
+  id,
+  values = { a: 0, b: 0, trigger: false, gate: false }
+) {
   var color = randomColor();
 
   const newCard = document.createElement("div");
@@ -86,7 +91,9 @@ function createNodeCard(id, values) {
   newCard.id = id;
   newCard.draggable = true;
   newCard.ondragstart = function (event) {
-    event.target.parentElement.classList.add("border");
+    if (event.target.parentElement.id != "leRow") {
+      event.target.parentElement.classList.add("border");
+    }
     drag(event);
   };
   newCard.onclick = function () {
@@ -95,6 +102,9 @@ function createNodeCard(id, values) {
     newCard.classList.remove("border-dark");
     newCard.classList.add("border-primary");
     switchEditWindowNode(newCard.id);
+  };
+  newCard.ondblclick = function () {
+    showMenu();
   };
   newCard.classList.add(
     "node-card",
@@ -166,27 +176,15 @@ function createNodeCard(id, values) {
   return newCard;
 }
 
-const colorNames = ["1", "2", "3", "4", "5", "6"];
-colorNames.forEach((element) => {
-  document.getElementById("leRow").appendChild(createNodeCard(element, values));
-});
-
-const rowCount = 10;
-const columnCount = 6;
+const rowCount = innerHeight / 100;
+const columnCount = innerWidth / 200;
 for (let indexRow = 0; indexRow < rowCount; indexRow++) {
   const newRow = document.createElement("div");
   newRow.classList.add("row");
   newRow.classList.add("h-100");
   for (let indexCoulumn = 0; indexCoulumn < columnCount; indexCoulumn++) {
     const newColumn = document.createElement("div");
-    newColumn.classList.add(
-      "col",
-      "border",
-      "p-0",
-      "m-2",
-      "rounded",
-      "border-dashed"
-    );
+    newColumn.classList.add("col", "border", "p-0", "m-2", "rounded");
 
     newColumn.style.minHeight = "4em";
     //newColumn.innerHTML = indexRow + " " + indexCoulumn;
@@ -213,13 +211,7 @@ function readDataFromArray(id) {
   });
 
   if (node != undefined) {
-    $("#uid").val(node.nodeID);
-    $("#number-value-primary").val(node.valueA);
-    $("#number-value-secondary").val(node.valueB);
-    $("#slider-value-primary").val(node.valueA);
-    $("#slider-value-secondary").val(node.valueB);
-    $("#value-gate").val(node.valueGate);
-    $("#value-trigger").val(node.valueTrigger);
+    setEditor(node);
   } else {
     $("#uid").val(id);
     $("#number-value-primary").val(0);
@@ -231,6 +223,25 @@ function readDataFromArray(id) {
   }
 }
 
+function setEditor(node) {
+  $("#uid").val(node.nodeID);
+  $("#number-value-primary").val(node.valueA);
+  $("#number-value-secondary").val(node.valueB);
+  $("#slider-value-primary").val(node.valueA);
+  $("#slider-value-secondary").val(node.valueB);
+  $("#value-gate").prop("checked", node.valueGate);
+  $("#value-trigger").prop("checked", node.valueTrigger);
+}
+
+function isNodeDataValid(node) {
+  var nodeId = nodes.find((x) => x.nodeID == node.nextNode);
+  if (nodeId == undefined) {
+    return false;
+  }
+
+  return true;
+}
+
 function dataSumit() {
   var node = {
     nodeID: document.getElementById("uid").value,
@@ -238,29 +249,35 @@ function dataSumit() {
     valueB: document.getElementById("number-value-secondary").value,
     valueGate: document.getElementById("value-gate").checked,
     valueTrigger: document.getElementById("value-trigger").checked,
-    nextNode: [],
+    nextNode: document.getElementById("next").value,
   };
-  varnodeJSON = JSON.stringify(node);
-  console.log(varnodeJSON);
+  if (isNodeDataValid(node)) {
+    varnodeJSON = JSON.stringify(node);
+    console.log(varnodeJSON);
 
-  //update node
-  updateNodeCard(document.getElementById("uid").value, node);
+    //update node
+    updateNodeCard(document.getElementById("uid").value, node);
+    addConection(node.nodeID, node.nextNode);
 
-  //search arry for node
-  for (let index = 0; index < nodes.length; index++) {
-    if (nodes[index].nodeID == node.nodeID) {
-      var nodeInArray = nodes[index];
-      //found the node, please update
-      nodeInArray.valueA = node.valueA;
-      nodeInArray.valueB = node.valueB;
-      nodeInArray.valueGate = node.valueGate;
-      nodeInArray.valueTrigger = node.valueTrigger;
-      //we're done here -> quiting time
-      return 0;
+    //search arry for node
+    for (let index = 0; index < nodes.length; index++) {
+      if (nodes[index].nodeID == node.nodeID) {
+        var nodeInArray = nodes[index];
+        //found the node, please update
+        nodeInArray.valueA = node.valueA;
+        nodeInArray.valueB = node.valueB;
+        nodeInArray.valueGate = node.valueGate;
+        nodeInArray.valueTrigger = node.valueTrigger;
+        nodeInArray.nextNode = node.nextNode;
+        //we're done here -> quiting time
+        return 0;
+      }
     }
+    //not found -> New array entry
+    nodes.push(node);
+  } else {
+    throw "ERROR: Invalid Node data.";
   }
-  //not found -> New array entry
-  nodes.push(node);
 }
 
 /**
@@ -281,4 +298,58 @@ function updateNodeCard(id, nodeData) {
 
 function writeToDevice() {
   console.log(JSON.stringify(nodes));
+}
+function hideMenu() {
+  $("#side-menu").hide();
+}
+
+function showMenu() {
+  $("#side-menu").show();
+}
+
+function toggleMenu() {
+  if ($("#side-menu").is(":visible")) {
+    $("#side-menu").hide();
+  } else {
+    $("#side-menu").show();
+  }
+}
+
+function randomInRange(min, max) {
+  return Math.random() < 0.5
+    ? (1 - Math.random()) * (max - min) + min
+    : Math.random() * (max - min) + min;
+}
+
+function randomBoolean() {
+  return Math.random() > 0.5;
+}
+
+function randomiseValues() {
+  var node = {
+    nodeID: document.getElementById("uid").value,
+    valueA: randomInRange(-12, 12),
+    valueB: randomInRange(-12, 12),
+    valueGate: randomBoolean(),
+    valueTrigger: randomBoolean(),
+    nextNode: [],
+  };
+
+  setEditor(node);
+}
+
+function createNewNode() {
+  var newNode = {
+    nodeID: nextFreeId,
+    valueA: 0,
+    valueB: 0,
+    valueGate: 0,
+    valueTrigger: 0,
+    nextNode: [],
+  };
+  nextFreeId++;
+  nodes.push(newNode);
+  $("#leRow").append(createNodeCard(newNode.nodeID));
+  $("#next-0").append("<option>" + newNode.nodeID + "</option>");
+  $("#next-0").append("<option>" + newNode.nodeID + "</option>");
 }
