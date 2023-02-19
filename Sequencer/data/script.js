@@ -234,7 +234,7 @@ function setEditor(node) {
 }
 
 function isNodeDataValid(node) {
-  var nodeId = nodes.find((x) => x.nodeID == node.nextNode);
+  var nodeId = nodes.find((x) => x.nodeID == node.nextNodes[0]);
   if (nodeId == undefined) {
     return false;
   }
@@ -242,24 +242,24 @@ function isNodeDataValid(node) {
   return true;
 }
 
-function dataSumit() {
+function dataSubmit() {
   var node = {
     nodeID: document.getElementById("uid").value,
     valueA: document.getElementById("number-value-primary").value,
     valueB: document.getElementById("number-value-secondary").value,
     valueGate: document.getElementById("value-gate").checked,
     valueTrigger: document.getElementById("value-trigger").checked,
-    nextNode: document.getElementById("next").value,
+    nextNodes: [document.getElementById("next-0").value, document.getElementById("next-1").value],
   };
   if (isNodeDataValid(node)) {
-    varnodeJSON = JSON.stringify(node);
-    console.log(varnodeJSON);
+    var nodeJSON = JSON.stringify(node);
+    console.log(nodeJSON);
 
     //update node
     updateNodeCard(document.getElementById("uid").value, node);
-    addConection(node.nodeID, node.nextNode);
+    addConection(node.nodeID, node.nextNodes[0]);
 
-    //search arry for node
+    //search array for node
     for (let index = 0; index < nodes.length; index++) {
       if (nodes[index].nodeID == node.nodeID) {
         var nodeInArray = nodes[index];
@@ -268,8 +268,8 @@ function dataSumit() {
         nodeInArray.valueB = node.valueB;
         nodeInArray.valueGate = node.valueGate;
         nodeInArray.valueTrigger = node.valueTrigger;
-        nodeInArray.nextNode = node.nextNode;
-        //we're done here -> quiting time
+        nodeInArray.nextNodes = node.nextNodes;
+        //we're done here -> quitting time
         return 0;
       }
     }
@@ -352,5 +352,5 @@ function createNewNode() {
   nodes.push(newNode);
   $("#leRow").append(createNodeCard(newNode.nodeID));
   $("#next-0").append("<option>" + newNode.nodeID + "</option>");
-  $("#next-0").append("<option>" + newNode.nodeID + "</option>");
+  $("#next-1").append("<option>" + newNode.nodeID + "</option>");
 }
