@@ -135,14 +135,6 @@ void reset()
   seqNextNode = startNode.getNextNode();
 }
 
-// HTML & CSS contents which display on web server
-String HTML = "<!DOCTYPE html>\
-<html>\
-<body>\
-<h1>My First Web Server with ESP32 - AP Mode &#128522;</h1>\
-</body>\
-</html>";
-
 // Replaces placeholder with LED state value
 String processor(const String &var)
 {
@@ -173,7 +165,7 @@ void setup()
   pinMode(chipSelectPin, OUTPUT);
 
   Serial.begin(115200);
-  Serial.println("Hello");
+  Serial.println("LOG: Serial begun");
 
   // Initialize SPIFFS
   if (!SPIFFS.begin(true))
@@ -198,6 +190,8 @@ void setup()
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
             { request->send(SPIFFS, "/index.html"); });
 
+  server.serveStatic("/", SPIFFS, "/"); //load static server files from Memory
+
   server.on(
       "/post",
       HTTP_POST,
@@ -214,10 +208,14 @@ void setup()
 
         request->send(200);
       });
-}
-});
-server.begin();
-Serial.println("LOG: HTTP server started");
+
+  server.onNotFound([](AsyncWebServerRequest *request)
+                    { request->send(404); });
+
+  server.begin();
+  Serial.println("LOG: HTTP server started");
+  Serial.print("LOG: localIP=");
+  Serial.println(WiFi.localIP());
 }
 
 /**
@@ -226,11 +224,11 @@ Serial.println("LOG: HTTP server started");
  */
 void loop()
 {
-  int sensorValue = analogRead(testPin1) / 4;
-  Serial.print("in=");
-  Serial.print(sensorValue);
-  Serial.print(" out=");
-  sendWord(buildWord(sensorValue));
-  Serial.println(analogRead(testPin2));
-  delay(1000);
+  // int sensorValue = analogRead(testPin1) / 4;
+  // Serial.print("in=");
+  // Serial.print(sensorValue);
+  // Serial.print(" out=");
+  // sendWord(buildWord(sensorValue));
+  // Serial.println(analogRead(testPin2));
+  // delay(1000);
 }
