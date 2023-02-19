@@ -298,6 +298,7 @@ function updateNodeCard(id, nodeData) {
 
 function writeToDevice() {
   console.log(JSON.stringify(nodes));
+  $.post("", JSON.stringify(nodes));
 }
 function hideMenu() {
   $("#side-menu").hide();
