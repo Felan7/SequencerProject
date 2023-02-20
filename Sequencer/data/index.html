@@ -103,7 +103,7 @@
             <button
               type="button"
               class="btn m-1 btn-primary"
-              onclick="randomiseValues()"
+              onclick="randomizeValues()"
             >
               <i class="fa-solid fa-dice"></i>
             </button>
@@ -211,10 +211,10 @@
                 <i class="fa-solid fa-shapes fa-xl fa-fw"></i>
               </article>
               <article class="col">
-                <select class="form-select" id="type">
-                  <option>SimpleStep →</option>
-                  <option>Probability 🎲</option>
-                  <option>Conditional ?</option>
+                <select class="form-select" id="type" onchange="modeSelected()">
+                  <option value="0">SimpleStep →</option>
+                  <option value="1">Probability 🎲</option>
+                  <option value="2">Conditional ?</option>
                 </select>
               </article>
               <article class="col-2">
@@ -230,14 +230,16 @@
                 </span>
               </article>
               <article class="col">
-                <select id="next-0" class="form-select"></select>
+                <select id="next-0" class="form-select">
+                  <option value="-1">∅</option>
+                </select>
               </article>
               <article class="col-2">
                 <span class="text-muted">Required</span>
               </article>
             </section>
 
-            <section class="row align-items-center m-1">
+            <section class="row align-items-center m-1" id="next-1-section">
               <article class="col-1 text-center p-0">
                 <span class="fa-stack fa-1x">
                   <i class="fa-solid fa-stack-2x fa-circle"></i>
@@ -245,7 +247,9 @@
                 </span>
               </article>
               <article class="col">
-                <select id="next-1" class="form-select"></select>
+                <select id="next-1" class="form-select">
+                  <option value="-1">∅</option>
+                </select>
               </article>
               <article class="col-2">
                 <span class="text-muted">Required </span>

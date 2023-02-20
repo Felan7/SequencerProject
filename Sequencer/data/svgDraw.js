@@ -28,29 +28,9 @@ function drawPath(svg, path, startX, startY, endX, endY) {
   if (startX < endX) {
     if (startY == endY) {
       //case 1: straight line from left to right
-      console.log("SX=" + startX + " SY=" + startY + " EX=" + endX + " EY=" + endY);
       path.attr("d", "M" + startX + " " + startY + " L" + endX + " " + endY);
     } else if (startY > endY) {
       //case 2: line bent up, then right
-
-      // find shortest half line
-
-      //   console.log(
-      //     "sx=" +
-      //       startX +
-      //       " sy=" +
-      //       startY +
-      //       " ex=" +
-      //       endX +
-      //       " ey=" +
-      //       endY +
-      //       " dx=" +
-      //       deltaX +
-      //       " dy=" +
-      //       deltaY +
-      //       " min=" +
-      //       min
-      //   );
       path.attr(
         "d",
         "M" +
@@ -284,7 +264,7 @@ var connectionsList = [];
  * @param {*} from The starting point of the Connection.
  * @param {*} to The End Point of the Connection.
  */
-function addConection(from, to) {
+function addConnection(from, to) {
   connectionsList.push({ from: from, to: to });
   console.log(connectionsList);
   connectAll("svg1");
@@ -332,3 +312,4 @@ $(document).ready(function () {
 $(window).resize(function () {
   connectAll("svg1");
 });
+

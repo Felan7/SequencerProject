@@ -1,7 +1,18 @@
 const nodes = [];
 var nextFreeId = 1;
 
-// $("#side-menu").hide();
+
+setup();
+function setup() {
+  // $("#side-menu").hide();
+
+  $("#next-1-section").hide()
+
+  createGrid(innerHeight / 100, innerWidth / 200);
+
+  linkSliderToNumberInput("slider-value-primary", "number-value-primary");
+  linkSliderToNumberInput("slider-value-secondary", "number-value-secondary");
+}
 
 function linkSliderToNumberInput(sliderId, numberId) {
   var slider = document.getElementById(sliderId);
@@ -24,8 +35,6 @@ function linkSliderToNumberInput(sliderId, numberId) {
   };
 }
 
-linkSliderToNumberInput("slider-value-primary", "number-value-primary");
-linkSliderToNumberInput("slider-value-secondary", "number-value-secondary");
 
 function drop(ev) {
   ev.preventDefault();
@@ -176,28 +185,28 @@ function createNodeCard(
   return newCard;
 }
 
-const rowCount = innerHeight / 100;
-const columnCount = innerWidth / 200;
-for (let indexRow = 0; indexRow < rowCount; indexRow++) {
-  const newRow = document.createElement("div");
-  newRow.classList.add("row");
-  newRow.classList.add("h-100");
-  for (let indexCoulumn = 0; indexCoulumn < columnCount; indexCoulumn++) {
-    const newColumn = document.createElement("div");
-    newColumn.classList.add("col", "border", "p-0", "m-2", "rounded");
+function createGrid(rowCount, columnCount) {
+  for (let indexRow = 0; indexRow < rowCount; indexRow++) {
+    const newRow = document.createElement("div");
+    newRow.classList.add("row");
+    newRow.classList.add("h-100");
+    for (let indexCoulumn = 0; indexCoulumn < columnCount; indexCoulumn++) {
+      const newColumn = document.createElement("div");
+      newColumn.classList.add("col", "border", "p-0", "m-2", "rounded");
 
-    newColumn.style.minHeight = "4em";
-    //newColumn.innerHTML = indexRow + " " + indexCoulumn;
-    newColumn.ondrop = function () {
-      event.target.classList.remove("border");
-      drop(event);
-    };
-    newColumn.ondragover = function () {
-      allowDrop(event);
-    };
-    newRow.appendChild(newColumn);
+      newColumn.style.minHeight = "4em";
+      //newColumn.innerHTML = indexRow + " " + indexCoulumn;
+      newColumn.ondrop = function () {
+        event.target.classList.remove("border");
+        drop(event);
+      };
+      newColumn.ondragover = function () {
+        allowDrop(event);
+      };
+      newRow.appendChild(newColumn);
+    }
+    document.getElementById("outer").appendChild(newRow);
   }
-  document.getElementById("outer").appendChild(newRow);
 }
 
 function switchEditWindowNode(id) {
@@ -207,7 +216,7 @@ function switchEditWindowNode(id) {
 
 function readDataFromArray(id) {
   var node = nodes.find((element) => {
-    return element.nodeID == id;
+    return element.id == id;
   });
 
   if (node != undefined) {
@@ -224,18 +233,26 @@ function readDataFromArray(id) {
 }
 
 function setEditor(node) {
-  $("#uid").val(node.nodeID);
-  $("#number-value-primary").val(node.valueA);
-  $("#number-value-secondary").val(node.valueB);
-  $("#slider-value-primary").val(node.valueA);
-  $("#slider-value-secondary").val(node.valueB);
-  $("#value-gate").prop("checked", node.valueGate);
-  $("#value-trigger").prop("checked", node.valueTrigger);
+  $("#uid").val(node.id);
+  $("#number-value-primary").val(node.a);
+  $("#number-value-secondary").val(node.b);
+  $("#slider-value-primary").val(node.a);
+  $("#slider-value-secondary").val(node.b);
+  $("#value-gate").prop("checked", node.gate);
+  $("#value-trigger").prop("checked", node.trigger);
+  $("#next-0").val(node.nextNodes[0]);
+  $("#next-1").val(node.nextNodes[1]);
+  $("#type").val(node.type).change();
 }
 
 function isNodeDataValid(node) {
-  var nodeId = nodes.find((x) => x.nodeID == node.nextNodes[0]);
-  if (nodeId == undefined) {
+  return true; //OVERWRITE!
+  if (node.id == -1) {
+    //no next node selected
+    return true;
+  }
+  var id = nodes.find((x) => x.id == node.nextNodes[0]);
+  if (id == undefined) {
     return false;
   }
 
@@ -244,30 +261,42 @@ function isNodeDataValid(node) {
 
 function dataSubmit() {
   var node = {
-    nodeID: document.getElementById("uid").value,
-    valueA: document.getElementById("number-value-primary").value,
-    valueB: document.getElementById("number-value-secondary").value,
-    valueGate: document.getElementById("value-gate").checked,
-    valueTrigger: document.getElementById("value-trigger").checked,
+    id: document.getElementById("uid").value,
+    a: document.getElementById("number-value-primary").value,
+    b: document.getElementById("number-value-secondary").value,
+    gate: document.getElementById("value-gate").checked,
+    trigger: document.getElementById("value-trigger").checked,
+    type: $("#type option:selected").val(),
     nextNodes: [document.getElementById("next-0").value, document.getElementById("next-1").value],
   };
+  if ($("#type option:selected").val() == 1) {
+    node.nextNodes[1] = -1;
+  }
+
   if (isNodeDataValid(node)) {
     var nodeJSON = JSON.stringify(node);
     console.log(nodeJSON);
 
     //update node
     updateNodeCard(document.getElementById("uid").value, node);
-    addConection(node.nodeID, node.nextNodes[0]);
+    if (node.nextNodes[0] >= 0) {
+      addConnection(node.id, node.nextNodes[0]);
+    }
+
+    if (node.nextNodes[1] >= 0) {
+      addConnection(node.id, node.nextNodes[1]);
+    }
 
     //search array for node
     for (let index = 0; index < nodes.length; index++) {
-      if (nodes[index].nodeID == node.nodeID) {
+      if (nodes[index].id == node.id) {
         var nodeInArray = nodes[index];
         //found the node, please update
-        nodeInArray.valueA = node.valueA;
-        nodeInArray.valueB = node.valueB;
-        nodeInArray.valueGate = node.valueGate;
-        nodeInArray.valueTrigger = node.valueTrigger;
+        nodeInArray.a = node.a;
+        nodeInArray.b = node.b;
+        nodeInArray.gate = node.gate;
+        nodeInArray.trigger = node.trigger;
+        nodeInArray.type = node.type;
         nodeInArray.nextNodes = node.nextNodes;
         //we're done here -> quitting time
         return 0;
@@ -286,13 +315,13 @@ function dataSubmit() {
  * @param {*} nodeData The JavaScriptObject containing the data.
  */
 function updateNodeCard(id, nodeData) {
-  $("#" + id + "-value-a").html("A:" + formatNumber(nodeData.valueA));
-  $("#" + id + "-value-b").html("B:" + formatNumber(nodeData.valueB));
+  $("#" + id + "-value-a").html("A:" + formatNumber(nodeData.a));
+  $("#" + id + "-value-b").html("B:" + formatNumber(nodeData.b));
   $("#" + id + "-value-trigger").html(
-    "T:" + translateBoolToIcon(nodeData.valueTrigger)
+    "T:" + translateBoolToIcon(nodeData.trigger)
   );
   $("#" + id + "-value-gate").html(
-    "G:" + translateBoolToIcon(nodeData.valueGate)
+    "G:" + translateBoolToIcon(nodeData.gate)
   );
 }
 
@@ -326,31 +355,45 @@ function randomBoolean() {
   return Math.random() > 0.5;
 }
 
-function randomiseValues() {
+function randomizeValues() {
   var node = {
-    nodeID: document.getElementById("uid").value,
-    valueA: randomInRange(-12, 12),
-    valueB: randomInRange(-12, 12),
-    valueGate: randomBoolean(),
-    valueTrigger: randomBoolean(),
-    nextNode: [],
-  };
+    id: document.getElementById("uid").value,
+    a: randomInRange(-12, 12),
+    b: randomInRange(-12, 12),
+    gate: randomBoolean(),
+    trigger: randomBoolean(),
+    type: 0,
+    nextNodes: [-1, -1],
+  }
 
   setEditor(node);
 }
 
 function createNewNode() {
   var newNode = {
-    nodeID: nextFreeId,
-    valueA: 0,
-    valueB: 0,
-    valueGate: 0,
-    valueTrigger: 0,
-    nextNode: [],
+    id: nextFreeId,
+    a: 0,
+    b: 0,
+    gate: 0,
+    trigger: 0,
+    type: 0,
+    nextNodes: [-1, -1],
   };
   nextFreeId++;
   nodes.push(newNode);
-  $("#leRow").append(createNodeCard(newNode.nodeID));
-  $("#next-0").append("<option>" + newNode.nodeID + "</option>");
-  $("#next-1").append("<option>" + newNode.nodeID + "</option>");
+  $("#leRow").append(createNodeCard(newNode.id));
+  $("#next-0").append("<option>" + newNode.id + "</option>");
+  $("#next-1").append("<option>" + newNode.id + "</option>");
+  $("#" + newNode.id).click();
+}
+
+function modeSelected() {
+  if ($("#type option:selected").val() == 0) {
+    //2nd next node should be hidden
+    $("#next-1-section").hide()
+  } else {
+    //2nd next nod should be shown
+    $("#next-1-section").show()
+  }
+
 }
