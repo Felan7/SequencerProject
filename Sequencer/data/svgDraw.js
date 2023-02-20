@@ -1,10 +1,3 @@
-//helper functions, it turned out chrome doesn't support Math.sgn() newDiv
-function signum(x) {
-  return x < 0 ? -1 : 1;
-}
-function absolute(x) {
-  return x < 0 ? -x : x;
-}
 
 /**
  *
@@ -14,7 +7,6 @@ function absolute(x) {
  * @param {*} startY
  * @param {*} endX
  * @param {*} endY
- *
  */
 function drawPath(svg, path, startX, startY, endX, endY) {
   // get the path's stroke width (if one wanted to be  really precise, one could use half the stroke size)
@@ -24,29 +16,20 @@ function drawPath(svg, path, startX, startY, endX, endY) {
   if (svg.attr("width") < startX + stroke) svg.attr("width", startX + stroke);
   if (svg.attr("width") < endX + stroke) svg.attr("width", endX + stroke);
 
+  //calculate differences and their halves
   var deltaX = Math.abs(endX - startX);
   var deltaX2 = deltaX / 2;
   var deltaY = Math.abs(endY - startY);
   var deltaY2 = deltaY / 2;
-  // for further calculations which ever is the shortest distance
-  var delta = deltaY < absolute(deltaX) ? deltaY : absolute(deltaX);
 
-  // set sweep-flag (counter/clock-wise)
-  // if start element is closer to the left edge,
-  // draw the first arc counter-clockwise, and the second one clock-wise
-  var arc1 = 0;
-  var arc2 = 1;
-  if (startX > endX) {
-    arc1 = 1;
-    arc2 = 0;
-  }
   var min = Math.min(deltaX2, deltaY2) / 2;
   const offsetX = document.getElementById("outer").offsetWidth / 80;
   const offsetY = document.getElementById("outer").offsetHeight / 20;
   if (startX < endX) {
     if (startY == endY) {
-      //case 1: straigth line from left to right
-      path.attr("d", "M" + startX + " " + startY + " H" + endX + " " + endY);
+      //case 1: straight line from left to right
+      console.log("SX=" + startX + " SY=" + startY + " EX=" + endX + " EY=" + endY);
+      path.attr("d", "M" + startX + " " + startY + " L" + endX + " " + endY);
     } else if (startY > endY) {
       //case 2: line bent up, then right
 
