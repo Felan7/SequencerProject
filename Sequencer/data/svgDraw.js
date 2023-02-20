@@ -276,7 +276,7 @@ function addConnection(from, to) {
   }
 
 }
-
+//TO-DO: Delete Connections
 
 /**
  * Draws all the connections according to the {@link connectionsList}.
