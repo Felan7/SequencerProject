@@ -34,74 +34,74 @@ function drawPath(svg, path, startX, startY, endX, endY) {
       path.attr(
         "d",
         "M" +
-          startX +
-          " " +
-          startY +
-          " l" +
-          (deltaX2 - min) +
-          " " +
-          0 +
-          " q" +
-          min +
-          " " +
-          0 +
-          " " +
-          min +
-          " " +
-          -min +
-          " l" +
-          0 +
-          " " +
-          -(deltaY - 2 * min) +
-          " q" +
-          0 +
-          " " +
-          -min +
-          " " +
-          min +
-          " " +
-          -min +
-          " l" +
-          (deltaX2 - min) +
-          " " +
-          0
+        startX +
+        " " +
+        startY +
+        " l" +
+        (deltaX2 - min) +
+        " " +
+        0 +
+        " q" +
+        min +
+        " " +
+        0 +
+        " " +
+        min +
+        " " +
+        -min +
+        " l" +
+        0 +
+        " " +
+        -(deltaY - 2 * min) +
+        " q" +
+        0 +
+        " " +
+        -min +
+        " " +
+        min +
+        " " +
+        -min +
+        " l" +
+        (deltaX2 - min) +
+        " " +
+        0
       );
     } else if (startY < endY) {
       //case 3: line bent down, then right
       path.attr(
         "d",
         "M" +
-          startX +
-          " " +
-          startY +
-          " l" +
-          (deltaX2 - min) +
-          " " +
-          0 +
-          " q" +
-          min +
-          " " +
-          0 +
-          " " +
-          min +
-          " " +
-          min +
-          " l" +
-          0 +
-          " " +
-          (deltaY - 2 * min) +
-          " q" +
-          0 +
-          " " +
-          min +
-          " " +
-          min +
-          " " +
-          min +
-          " l" +
-          (deltaX2 - min) +
-          " " +
-          0
+        startX +
+        " " +
+        startY +
+        " l" +
+        (deltaX2 - min) +
+        " " +
+        0 +
+        " q" +
+        min +
+        " " +
+        0 +
+        " " +
+        min +
+        " " +
+        min +
+        " l" +
+        0 +
+        " " +
+        (deltaY - 2 * min) +
+        " q" +
+        0 +
+        " " +
+        min +
+        " " +
+        min +
+        " " +
+        min +
+        " l" +
+        (deltaX2 - min) +
+        " " +
+        0
       );
     }
   } else if (startX > endX) {
@@ -111,75 +111,75 @@ function drawPath(svg, path, startX, startY, endX, endY) {
       path.attr(
         "d",
         "M" +
-          startX +
-          " " +
-          startY +
-          " l" +
-          offsetX +
-          " " +
-          0 +
-          " l" +
-          0 +
-          " " +
-          deltaY2 +
-          " l " +
-          -(deltaX + offsetX * 2) +
-          " " +
-          0 +
-          "  l" +
-          0 +
-          " " +
-          deltaY2 +
-          "  l" +
-          offsetX +
-          " " +
-          0
+        startX +
+        " " +
+        startY +
+        " l" +
+        offsetX +
+        " " +
+        0 +
+        " l" +
+        0 +
+        " " +
+        deltaY2 +
+        " l " +
+        -(deltaX + offsetX * 2) +
+        " " +
+        0 +
+        "  l" +
+        0 +
+        " " +
+        deltaY2 +
+        "  l" +
+        offsetX +
+        " " +
+        0
       );
     } else if (startY > endY) {
       //case 5: line bent up, then left, then up, then right again
       path.attr(
         "d",
         "M" +
-          startX +
-          " " +
-          startY +
-          " L" +
-          startX +
-          " " +
-          (startY + deltaY2) +
-          " L " +
-          endX +
-          " " +
-          (startY + deltaY2) +
-          " L " +
-          endX +
-          " " +
-          endY
+        startX +
+        " " +
+        startY +
+        " L" +
+        startX +
+        " " +
+        (startY + deltaY2) +
+        " L " +
+        endX +
+        " " +
+        (startY + deltaY2) +
+        " L " +
+        endX +
+        " " +
+        endY
       );
     } else if (startY == endY) {
       //case 6: line bent up, then left, then down, then right again
       path.attr(
         "d",
         "M" +
-          startX +
-          " " +
-          startY +
-          " l" +
-          offsetX +
-          " " +
-          0 +
-          " l" +
-          0 +
-          " " +
-          -offsetY +
-          " l " +
-          -(deltaX + 2 * offsetX) +
-          " " +
-          0 +
-          " l " +
-          0 +
-          " " +
-          offsetY
+        startX +
+        " " +
+        startY +
+        " l" +
+        offsetX +
+        " " +
+        0 +
+        " l" +
+        0 +
+        " " +
+        -offsetY +
+        " l " +
+        -(deltaX + 2 * offsetX) +
+        " " +
+        0 +
+        " l " +
+        0 +
+        " " +
+        offsetY
       );
     }
   } else {
@@ -265,12 +265,18 @@ var connectionsList = [];
  * @param {*} to The End Point of the Connection.
  */
 function addConnection(from, to) {
-  connectionsList.push({ from: from, to: to });
-  console.log(connectionsList);
-  connectAll("svg1");
+  //check list for existing connection
+  if (!connectionsList.find((element) => {
+    return (from == element.from && to == element.to);
+  })) {
+    //if non-existing -> add new
+    connectionsList.push({ from: from, to: to });
+    console.log(connectionsList);
+    connectAll("svg1");
+  }
+
 }
 
-//TO_DO: Refactor rename
 
 /**
  * Draws all the connections according to the {@link connectionsList}.
