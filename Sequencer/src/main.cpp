@@ -190,8 +190,6 @@ void setup()
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
             { request->send(SPIFFS, "/index.html"); });
 
-  server.serveStatic("/", SPIFFS, "/"); //load static server files from Memory
-
   server.on(
       "/post",
       HTTP_POST,
@@ -199,6 +197,7 @@ void setup()
       NULL,
       [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total)
       {
+        Serial.println("LOG: Post received.");
         for (size_t i = 0; i < len; i++)
         {
           Serial.write(data[i]);
@@ -208,7 +207,7 @@ void setup()
 
         request->send(200);
       });
-
+  server.serveStatic("/", SPIFFS, "/"); // load static server files from Memory
   server.onNotFound([](AsyncWebServerRequest *request)
                     { request->send(404); });
 
