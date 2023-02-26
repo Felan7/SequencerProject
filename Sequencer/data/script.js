@@ -1,12 +1,11 @@
 const nodes = [];
 var nextFreeId = 1;
 
-
 setup();
 function setup() {
   // $("#side-menu").hide();
 
-  $("#next-1-section").hide()
+  $("#next-1-section").hide();
 
   createGrid(innerHeight / 100, innerWidth / 200);
 
@@ -34,7 +33,6 @@ function linkSliderToNumberInput(sliderId, numberId) {
     output.value = 0;
   };
 }
-
 
 function drop(ev) {
   ev.preventDefault();
@@ -267,7 +265,10 @@ function dataSubmit() {
     gate: document.getElementById("value-gate").checked,
     trigger: document.getElementById("value-trigger").checked,
     type: $("#type option:selected").val(),
-    nextNodes: [document.getElementById("next-0").value, document.getElementById("next-1").value],
+    nextNodes: [
+      document.getElementById("next-0").value,
+      document.getElementById("next-1").value,
+    ],
   };
   if ($("#type option:selected").val() == 1) {
     node.nextNodes[1] = -1;
@@ -279,13 +280,6 @@ function dataSubmit() {
 
     //update node
     updateNodeCard(document.getElementById("uid").value, node);
-    if (node.nextNodes[0] >= 0) {
-      addConnection(node.id, node.nextNodes[0]);
-    }
-
-    if (node.nextNodes[1] >= 0) {
-      addConnection(node.id, node.nextNodes[1]);
-    }
 
     //search array for node
     for (let index = 0; index < nodes.length; index++) {
@@ -297,11 +291,33 @@ function dataSubmit() {
         nodeInArray.gate = node.gate;
         nodeInArray.trigger = node.trigger;
         nodeInArray.type = node.type;
+
+        if (nodeInArray.nextNodes != node.nextNodes) {
+          deleteConnections(node.id);
+        }
+
+        if (node.nextNodes[0] >= 0) {
+          addConnection(node.id, node.nextNodes[0]);
+        }
+
+        if (node.nextNodes[1] >= 0) {
+          addConnection(node.id, node.nextNodes[1]);
+        }
+
         nodeInArray.nextNodes = node.nextNodes;
         //we're done here -> quitting time
         return 0;
       }
     }
+
+    if (node.nextNodes[0] >= 0) {
+      addConnection(node.id, node.nextNodes[0]);
+    }
+
+    if (node.nextNodes[1] >= 0) {
+      addConnection(node.id, node.nextNodes[1]);
+    }
+
     //not found -> New array entry
     nodes.push(node);
   } else {
@@ -320,9 +336,7 @@ function updateNodeCard(id, nodeData) {
   $("#" + id + "-value-trigger").html(
     "T:" + translateBoolToIcon(nodeData.trigger)
   );
-  $("#" + id + "-value-gate").html(
-    "G:" + translateBoolToIcon(nodeData.gate)
-  );
+  $("#" + id + "-value-gate").html("G:" + translateBoolToIcon(nodeData.gate));
 }
 
 function writeToDevice() {
@@ -364,7 +378,7 @@ function randomizeValues() {
     trigger: randomBoolean(),
     type: 0,
     nextNodes: [-1, -1],
-  }
+  };
 
   setEditor(node);
 }
@@ -390,10 +404,9 @@ function createNewNode() {
 function modeSelected() {
   if ($("#type option:selected").val() == 0) {
     //2nd next node should be hidden
-    $("#next-1-section").hide()
+    $("#next-1-section").hide();
   } else {
     //2nd next nod should be shown
-    $("#next-1-section").show()
+    $("#next-1-section").show();
   }
-
 }

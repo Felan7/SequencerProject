@@ -1,4 +1,3 @@
-
 /**
  *
  * @param {*} svg
@@ -34,74 +33,74 @@ function drawPath(svg, path, startX, startY, endX, endY) {
       path.attr(
         "d",
         "M" +
-        startX +
-        " " +
-        startY +
-        " l" +
-        (deltaX2 - min) +
-        " " +
-        0 +
-        " q" +
-        min +
-        " " +
-        0 +
-        " " +
-        min +
-        " " +
-        -min +
-        " l" +
-        0 +
-        " " +
-        -(deltaY - 2 * min) +
-        " q" +
-        0 +
-        " " +
-        -min +
-        " " +
-        min +
-        " " +
-        -min +
-        " l" +
-        (deltaX2 - min) +
-        " " +
-        0
+          startX +
+          " " +
+          startY +
+          " l" +
+          (deltaX2 - min) +
+          " " +
+          0 +
+          " q" +
+          min +
+          " " +
+          0 +
+          " " +
+          min +
+          " " +
+          -min +
+          " l" +
+          0 +
+          " " +
+          -(deltaY - 2 * min) +
+          " q" +
+          0 +
+          " " +
+          -min +
+          " " +
+          min +
+          " " +
+          -min +
+          " l" +
+          (deltaX2 - min) +
+          " " +
+          0
       );
     } else if (startY < endY) {
       //case 3: line bent down, then right
       path.attr(
         "d",
         "M" +
-        startX +
-        " " +
-        startY +
-        " l" +
-        (deltaX2 - min) +
-        " " +
-        0 +
-        " q" +
-        min +
-        " " +
-        0 +
-        " " +
-        min +
-        " " +
-        min +
-        " l" +
-        0 +
-        " " +
-        (deltaY - 2 * min) +
-        " q" +
-        0 +
-        " " +
-        min +
-        " " +
-        min +
-        " " +
-        min +
-        " l" +
-        (deltaX2 - min) +
-        " " +
-        0
+          startX +
+          " " +
+          startY +
+          " l" +
+          (deltaX2 - min) +
+          " " +
+          0 +
+          " q" +
+          min +
+          " " +
+          0 +
+          " " +
+          min +
+          " " +
+          min +
+          " l" +
+          0 +
+          " " +
+          (deltaY - 2 * min) +
+          " q" +
+          0 +
+          " " +
+          min +
+          " " +
+          min +
+          " " +
+          min +
+          " l" +
+          (deltaX2 - min) +
+          " " +
+          0
       );
     }
   } else if (startX > endX) {
@@ -111,75 +110,75 @@ function drawPath(svg, path, startX, startY, endX, endY) {
       path.attr(
         "d",
         "M" +
-        startX +
-        " " +
-        startY +
-        " l" +
-        offsetX +
-        " " +
-        0 +
-        " l" +
-        0 +
-        " " +
-        deltaY2 +
-        " l " +
-        -(deltaX + offsetX * 2) +
-        " " +
-        0 +
-        "  l" +
-        0 +
-        " " +
-        deltaY2 +
-        "  l" +
-        offsetX +
-        " " +
-        0
+          startX +
+          " " +
+          startY +
+          " l" +
+          offsetX +
+          " " +
+          0 +
+          " l" +
+          0 +
+          " " +
+          deltaY2 +
+          " l " +
+          -(deltaX + offsetX * 2) +
+          " " +
+          0 +
+          "  l" +
+          0 +
+          " " +
+          deltaY2 +
+          "  l" +
+          offsetX +
+          " " +
+          0
       );
     } else if (startY > endY) {
       //case 5: line bent up, then left, then up, then right again
       path.attr(
         "d",
         "M" +
-        startX +
-        " " +
-        startY +
-        " L" +
-        startX +
-        " " +
-        (startY + deltaY2) +
-        " L " +
-        endX +
-        " " +
-        (startY + deltaY2) +
-        " L " +
-        endX +
-        " " +
-        endY
+          startX +
+          " " +
+          startY +
+          " L" +
+          startX +
+          " " +
+          (startY + deltaY2) +
+          " L " +
+          endX +
+          " " +
+          (startY + deltaY2) +
+          " L " +
+          endX +
+          " " +
+          endY
       );
     } else if (startY == endY) {
       //case 6: line bent up, then left, then down, then right again
       path.attr(
         "d",
         "M" +
-        startX +
-        " " +
-        startY +
-        " l" +
-        offsetX +
-        " " +
-        0 +
-        " l" +
-        0 +
-        " " +
-        -offsetY +
-        " l " +
-        -(deltaX + 2 * offsetX) +
-        " " +
-        0 +
-        " l " +
-        0 +
-        " " +
-        offsetY
+          startX +
+          " " +
+          startY +
+          " l" +
+          offsetX +
+          " " +
+          0 +
+          " l" +
+          0 +
+          " " +
+          -offsetY +
+          " l " +
+          -(deltaX + 2 * offsetX) +
+          " " +
+          0 +
+          " l " +
+          0 +
+          " " +
+          offsetY
       );
     }
   } else {
@@ -266,18 +265,22 @@ var connectionsList = [];
  */
 function addConnection(from, to) {
   //check list for existing connection
-  if (!connectionsList.find((element) => {
-    return (from == element.from && to == element.to);
-  })) {
+  if (
+    !connectionsList.find((element) => {
+      return from == element.from && to == element.to;
+    })
+  ) {
     //if non-existing -> add new
     connectionsList.push({ from: from, to: to });
-    console.log(connectionsList);
+    // console.log(connectionsList);
     connectAll("svg1");
   }
-
 }
 //TO-DO: Delete Connections
-
+function deleteConnections(from) {
+  connectionsList = connectionsList.filter((element) => from != element.from);
+  connectAll("svg1");
+}
 /**
  * Draws all the connections according to the {@link connectionsList}.
  * @param {*} parentId
@@ -288,7 +291,7 @@ function connectAll(parentId) {
   //   $("#" + parentId).attr("width", "0");
 
   //find out how many paths and connections we have
-  const pathCount = document.getElementById(parentId).childElementCount - 1; //TODO: take only <path> children into account
+  const pathCount = $("#" + parentId).children("path").length - 1;
   const connectionsCount = connectionsList.length;
 
   if (pathCount < connectionsCount) {
@@ -296,7 +299,9 @@ function connectAll(parentId) {
     createPaths(connectionsCount - pathCount, parentId, pathCount);
   } else if (pathCount > connectionsCount) {
     //too many paths
-    //TO_DO: Destroy unuesd paths
+    for (let index = pathCount - 1; index >= connectionsCount; index--) {
+      $("#path" + index).remove();
+    }
   }
 
   //draw each connection
@@ -318,4 +323,3 @@ $(document).ready(function () {
 $(window).resize(function () {
   connectAll("svg1");
 });
-
