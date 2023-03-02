@@ -14,23 +14,23 @@ Node seqNextNode;
 Node startNode;
 
 // Inputs
-const int resetPin = 22;  // Reset Input Pin (Interrupt GPIO)
-const int stepPin = 23;   // Step Input Pin (Interrupt GPIO)
-const int xInputPin = 32; // X Input (ADC Pin)
-const int yInputPin = 33; // y Input (ADC Pin)
+const int resetPin = 22;           // Reset Input Pin (Interrupt GPIO)
+const int stepPin = 23;            // Step Input Pin (Interrupt GPIO)
+const int inputChipSelectPin = 32; // input SPI chip select pin
 
 // Outputs
-const int outputPinA = 14;       // TODO: find real pin number
-const int outputPinB = 15;       // TODO: find real pin number
-const int outputPinTrigger = 16; // TODO: find real pin number
-const int outputPinGate = 17;    // TODO: find real pin number
-const int chipSelectPin = 18;
+const int outputPinA = 14;          // TODO: find real pin number
+const int outputPinB = 15;          // TODO: find real pin number
+const int outputPinTrigger = 16;    // TODO: find real pin number
+const int outputPinGate = 17;       // TODO: find real pin number
+const int outputChipSelectPin = 18; // output SPI chip select pin
 
 // Variable to store the HTTP request
 String header;
 
 // SPI
 SPIClass *hspi = NULL;
+SPIClass *vspi = NULL;
 
 // SSID & Password
 const char *ssid = "ESP32";      // Enter your SSID here
@@ -41,6 +41,10 @@ AsyncWebServer server(80);       // Object of WebServer(HTTP port, 80 is default
 IPAddress local_ip(192, 168, 1, 1);
 IPAddress gateway(192, 168, 1, 1);
 IPAddress subnet(255, 255, 255, 0);
+
+// global input varables
+double x = 0;
+double y = 0;
 
 int translateOutputValues(double value)
 {
@@ -107,11 +111,11 @@ word buildWord(word value, bool writeToB = false)
 
 void sendWord(word data)
 {
-  digitalWrite(chipSelectPin, LOW); // activate DAC Communication
+  digitalWrite(outputChipSelectPin, LOW); // activate DAC Communication
 
   hspi->transfer16(data);
 
-  digitalWrite(chipSelectPin, HIGH); // deactivate DAC Communication
+  digitalWrite(outputChipSelectPin, HIGH); // deactivate DAC Communication
 }
 
 /**
@@ -162,7 +166,7 @@ void setup()
   pinMode(outputPinB, OUTPUT);
   pinMode(outputPinTrigger, OUTPUT);
   pinMode(outputPinGate, OUTPUT);
-  pinMode(chipSelectPin, OUTPUT);
+  pinMode(outputChipSelectPin, OUTPUT);
 
   Serial.begin(115200);
   Serial.println("LOG: Serial begun");
@@ -174,10 +178,16 @@ void setup()
     return;
   }
 
-  // SPI
+  // SPI h
   hspi = new SPIClass(HSPI);
   hspi->begin(); // Begin SPI Communication
   hspi->setBitOrder(MSBFIRST);
+
+  // SPI v
+  vspi = new SPIClass(HSPI);
+  vspi->begin(); // Begin SPI Communication
+  vspi->setBitOrder(MSBFIRST);
+  vspi->setDataMode(SPI_MODE3);
 
   // Create SoftAP
   WiFi.softAP(ssid, password);
@@ -230,4 +240,30 @@ void loop()
   // sendWord(buildWord(sensorValue));
   // Serial.println(analogRead(testPin2));
   // delay(1000);
+}
+
+void readInputs()
+{
+  unsigned int dataIn = 0;
+  digitalWrite(inputChipSelectPin, LOW);
+  uint8_t dataOut = 0b00000001;
+  dataIn = vspi->.transfer(dataOut);
+  dataOut = 0b10100000;
+  dataIn = vspi->.transfer(dataOut);
+  x = dataIn & 0x0F;
+  dataIn = vspi->.transfer(0x00);
+  x = x << 8;
+  x = x | dataIn;
+
+  dataOut = 0b00000001;
+  dataIn = vspi->.transfer(dataOut);
+  dataOut = 0b11100000;
+  dataIn = vspi->.transfer(dataOut);
+  y = dataIn & 0x0F;
+  dataIn = vspi->.transfer(0x00);
+  y = y << 8;
+  y = y | dataIn;
+
+  // input = input << 1;
+  digitalWrite(inputChipSelectPin, HIGH);
 }
