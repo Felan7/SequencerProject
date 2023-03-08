@@ -247,22 +247,22 @@ void readInputs()
   unsigned int dataIn = 0;
   digitalWrite(inputChipSelectPin, LOW);
   uint8_t dataOut = 0b00000001;
-  dataIn = vspi->.transfer(dataOut);
+  dataIn = vspi->transfer(dataOut);
   dataOut = 0b10100000;
-  dataIn = vspi->.transfer(dataOut);
-  x = dataIn & 0x0F;
-  dataIn = vspi->.transfer(0x00);
-  x = x << 8;
-  x = x | dataIn;
+  dataIn = vspi->transfer(dataOut);
+  unsigned int tempX = dataIn & 0x0F;
+  dataIn = vspi->transfer(0x00);
+  tempX = tempX << 8;
+  tempX = tempX | dataIn;
 
   dataOut = 0b00000001;
-  dataIn = vspi->.transfer(dataOut);
+  dataIn = vspi->transfer(dataOut);
   dataOut = 0b11100000;
-  dataIn = vspi->.transfer(dataOut);
-  y = dataIn & 0x0F;
-  dataIn = vspi->.transfer(0x00);
-  y = y << 8;
-  y = y | dataIn;
+  dataIn = vspi->transfer(dataOut);
+  unsigned int tempY = dataIn & 0x0F;
+  dataIn = vspi->transfer(0x00);
+  tempY = tempY << 8;
+  tempY = tempY | dataIn;
 
   // input = input << 1;
   digitalWrite(inputChipSelectPin, HIGH);
