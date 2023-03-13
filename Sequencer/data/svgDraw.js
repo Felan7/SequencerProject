@@ -322,7 +322,6 @@ function addConnection(from, to) {
   ) {
     //if non-existing -> add new
     connectionsList.push({ from: from, to: to });
-    // console.log(connectionsList);
     connectAll("svg1");
   }
 }
