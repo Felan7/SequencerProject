@@ -169,7 +169,7 @@ void setup()
   pinMode(outputChipSelectPin, OUTPUT);
 
   Serial.begin(115200);
-  Serial.println("LOG: Serial begun");
+  Serial.println("LOG: Serial started");
 
   // Initialize SPIFFS
   if (!SPIFFS.begin(true))
@@ -207,16 +207,16 @@ void setup()
       NULL,
       [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total)
       {
-        Serial.println("LOG: Post received.");
+        Serial.println("LOG: POST recieved");
+        request->send(200);
         for (size_t i = 0; i < len; i++)
         {
           Serial.write(data[i]);
         }
 
         Serial.println();
-
-        request->send(200);
       });
+
   server.serveStatic("/", SPIFFS, "/"); // load static server files from Memory
   server.onNotFound([](AsyncWebServerRequest *request)
                     { request->send(404); });

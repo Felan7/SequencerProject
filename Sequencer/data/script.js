@@ -341,7 +341,25 @@ function updateNodeCard(id, nodeData) {
 
 function writeToDevice() {
   console.log(JSON.stringify(nodes));
-  $.post("/post", JSON.stringify(nodes));
+  $.ajax(
+    {
+      type: "POST",
+      url: "/post",
+      data: JSON.stringify(nodes),
+      success: function () {
+        console.log("POST done");
+      },
+      dataType: "json"
+    })
+    .done(function () {
+      console.log("second success");
+    })
+    .fail(function () {
+      console.log("error");
+    })
+    .always(function () {
+      console.log("finished");
+    });
 }
 function hideMenu() {
   $("#side-menu").hide();
