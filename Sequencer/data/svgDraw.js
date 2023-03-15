@@ -308,6 +308,7 @@ function createPaths(n, parentId, startingIndex = 0) {
 }
 
 //"public" functions
+
 /**
  * Adds a connection to {@link connectionsList}.
  * @param {*} from The starting point of the Connection.
