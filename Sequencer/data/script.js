@@ -2,6 +2,9 @@ const nodes = [];
 var nextFreeId = 1;
 
 setup();
+/**
+ * A function containing all the setup things. Will be called once on load.
+ */
 function setup() {
   // $("#side-menu").hide();
 
@@ -13,6 +16,7 @@ function setup() {
   linkSliderToNumberInput("slider-value-secondary", "number-value-secondary");
 }
 
+// helper functions
 function linkSliderToNumberInput(sliderId, numberId) {
   var slider = document.getElementById(sliderId);
   var output = document.getElementById(numberId);
@@ -32,20 +36,6 @@ function linkSliderToNumberInput(sliderId, numberId) {
     slider.value = 0;
     output.value = 0;
   };
-}
-
-function drop(ev) {
-  ev.preventDefault();
-  var data = ev.dataTransfer.getData("text");
-  ev.target.appendChild(document.getElementById(data));
-  connectAll("svg1");
-}
-function allowDrop(ev) {
-  ev.preventDefault();
-}
-
-function drag(ev) {
-  ev.dataTransfer.setData("text", ev.target.id);
 }
 
 function translateBoolToIcon(boolean) {
@@ -81,10 +71,67 @@ function formatNumber(number) {
 function randomInt(upper) {
   return Math.floor(Math.random() * upper);
 }
+
 function randomColor() {
   return (
     "rgb(" + randomInt(255) + "," + randomInt(255) + "," + randomInt(255) + ")"
   );
+}
+
+function hideMenu() {
+  $("#side-menu").hide();
+}
+
+function showMenu() {
+  $("#side-menu").show();
+}
+
+function toggleMenu() {
+  if ($("#side-menu").is(":visible")) {
+    $("#side-menu").hide();
+  } else {
+    $("#side-menu").show();
+  }
+}
+
+function switchEditWindowNode(id) {
+  document.getElementById("uid").value = id;
+  readDataFromArray(id);
+}
+
+function randomInRange(min, max) {
+  return Math.random() < 0.5
+    ? (1 - Math.random()) * (max - min) + min
+    : Math.random() * (max - min) + min;
+}
+
+function randomBoolean() {
+  return Math.random() > 0.5;
+}
+
+function modeSelected() {
+  if ($("#type option:selected").val() == 0) {
+    //2nd next node should be hidden
+    $("#next-1-section").hide();
+  } else {
+    //2nd next nod should be shown
+    $("#next-1-section").show();
+  }
+}
+
+//event handlers
+function drop(ev) {
+  ev.preventDefault();
+  var data = ev.dataTransfer.getData("text");
+  ev.target.appendChild(document.getElementById(data));
+  connectAll("svg1");
+}
+function allowDrop(ev) {
+  ev.preventDefault();
+}
+
+function drag(ev) {
+  ev.dataTransfer.setData("text", ev.target.id);
 }
 
 function createNodeCard(
@@ -205,11 +252,6 @@ function createGrid(rowCount, columnCount) {
     }
     document.getElementById("outer").appendChild(newRow);
   }
-}
-
-function switchEditWindowNode(id) {
-  document.getElementById("uid").value = id;
-  readDataFromArray(id);
 }
 
 function readDataFromArray(id) {
@@ -343,31 +385,6 @@ function writeToDevice() {
   console.log(JSON.stringify(nodes));
   $.post("/post", JSON.stringify(nodes));
 }
-function hideMenu() {
-  $("#side-menu").hide();
-}
-
-function showMenu() {
-  $("#side-menu").show();
-}
-
-function toggleMenu() {
-  if ($("#side-menu").is(":visible")) {
-    $("#side-menu").hide();
-  } else {
-    $("#side-menu").show();
-  }
-}
-
-function randomInRange(min, max) {
-  return Math.random() < 0.5
-    ? (1 - Math.random()) * (max - min) + min
-    : Math.random() * (max - min) + min;
-}
-
-function randomBoolean() {
-  return Math.random() > 0.5;
-}
 
 function randomizeValues() {
   var node = {
@@ -399,14 +416,4 @@ function createNewNode() {
   $("#next-0").append("<option>" + newNode.id + "</option>");
   $("#next-1").append("<option>" + newNode.id + "</option>");
   $("#" + newNode.id).click();
-}
-
-function modeSelected() {
-  if ($("#type option:selected").val() == 0) {
-    //2nd next node should be hidden
-    $("#next-1-section").hide();
-  } else {
-    //2nd next nod should be shown
-    $("#next-1-section").show();
-  }
 }
