@@ -14,16 +14,14 @@ Node seqNextNode;
 Node startNode;
 
 // Inputs
-const int resetPin = 22;           // Reset Input Pin (Interrupt GPIO)
-const int stepPin = 23;            // Step Input Pin (Interrupt GPIO)
-const int inputChipSelectPin = 32; // input SPI chip select pin
+const int resetPin = 16;          // Reset Input Pin (Interrupt GPIO)
+const int stepPin = 17;           // Step Input Pin (Interrupt GPIO)
+const int inputChipSelectPin = 5; // input SPI chip select pin
 
 // Outputs
-const int outputPinA = 14;          // TODO: find real pin number
-const int outputPinB = 15;          // TODO: find real pin number
-const int outputPinTrigger = 16;    // TODO: find real pin number
-const int outputPinGate = 17;       // TODO: find real pin number
-const int outputChipSelectPin = 18; // output SPI chip select pin
+const int outputPinTrigger = 2;     // TODO: find real pin number
+const int outputPinGate = 15;       // TODO: find real pin number
+const int outputChipSelectPin = 22; // output SPI chip select pin
 
 // Variable to store the HTTP request
 String header;
@@ -42,7 +40,10 @@ IPAddress local_ip(192, 168, 1, 1);
 IPAddress gateway(192, 168, 1, 1);
 IPAddress subnet(255, 255, 255, 0);
 
-// global input varables
+bool reset_state = false;
+bool step_state = false;
+
+// global input variables
 double x = 0;
 double y = 0;
 
@@ -58,10 +59,6 @@ int translateOutputValues(double value)
 void outputData()
 {
   valueStruct outputValues = seqCurrentNode.getValues();
-  // Value A
-  analogWrite(outputPinA, translateOutputValues(outputValues.valueA));
-  // Value B
-  analogWrite(outputPinA, translateOutputValues(outputValues.valueA));
   // Trigger
   if (outputValues.trigger)
   {
@@ -122,21 +119,36 @@ void sendWord(word data)
  * @brief Interupt function for the step Input
  * Switches to the nextNode
  */
-void step()
+void IRAM_ATTR step()
 {
-
-  seqCurrentNode = seqNextNode; // overwrite the old current with the new current Node
-  outputData();
-  seqNextNode = seqCurrentNode.getNextNode(); // determine the next Node
+  // seqCurrentNode = seqNextNode; // overwrite the old current with the new current Node
+  // outputData();
+  // seqNextNode = seqCurrentNode.getNextNode(); // determine the next Node
+  static unsigned long last_interrupt_time = 0;
+  unsigned long interrupt_time = millis();
+  // If interrupts come faster than 200ms, assume it's a bounce and ignore
+  if (interrupt_time - last_interrupt_time > 200)
+  {
+    step_state = true;
+  }
+  last_interrupt_time = interrupt_time;
 }
 
 /**
  * @brief Interupt function for the reset Input
  * Resets the sequence to the starting node.
  */
-void reset()
+void IRAM_ATTR reset()
 {
-  seqNextNode = startNode.getNextNode();
+  static unsigned long last_interrupt_time = 0;
+  unsigned long interrupt_time = millis();
+  // If interrupts come faster than 200ms, assume it's a bounce and ignore
+  if (interrupt_time - last_interrupt_time > 200)
+  {
+    reset_state = true;
+  }
+  last_interrupt_time = interrupt_time;
+  // seqNextNode = startNode.getNextNode();
 }
 
 // Replaces placeholder with LED state value
@@ -145,25 +157,21 @@ String processor(const String &var)
   return String();
 }
 
-const int testPin1 = 34;
-const int testPin2 = 35;
 /**
  * @brief Arduino Setup function
  * "put your setup code here, to run once:"
  */
 void setup()
 {
-  pinMode(resetPin, INPUT);
-  attachInterrupt(resetPin, reset, RISING);
+  pinMode(resetPin, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(resetPin), reset, FALLING);
 
-  pinMode(stepPin, INPUT);
-  attachInterrupt(stepPin, step, RISING);
+  pinMode(stepPin, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(stepPin), step, FALLING);
 
-  pinMode(testPin1, INPUT);
-  pinMode(testPin2, INPUT);
+  pinMode(inputChipSelectPin, OUTPUT);
+  digitalWrite(inputChipSelectPin, HIGH);
 
-  pinMode(outputPinA, OUTPUT);
-  pinMode(outputPinB, OUTPUT);
   pinMode(outputPinTrigger, OUTPUT);
   pinMode(outputPinGate, OUTPUT);
   pinMode(outputChipSelectPin, OUTPUT);
@@ -185,9 +193,10 @@ void setup()
 
   // SPI v
   vspi = new SPIClass(HSPI);
-  vspi->begin(); // Begin SPI Communication
   vspi->setBitOrder(MSBFIRST);
   vspi->setDataMode(SPI_MODE3);
+  vspi->begin(); // Begin SPI Communication
+  
 
   // Create SoftAP
   WiFi.softAP(ssid, password);
@@ -227,6 +236,40 @@ void setup()
   Serial.println(WiFi.localIP());
 }
 
+void readInputs()
+{
+  unsigned int dataIn = 0;
+  unsigned int tempX = 0;
+
+  digitalWrite(inputChipSelectPin, LOW);
+  uint8_t dataOut = 0b00000001;
+  dataIn = vspi->transfer(dataOut);
+  dataOut = 0b10100000;
+  dataIn = vspi->transfer(dataOut);
+  tempX = dataIn & 0x0F;
+  dataIn = vspi->transfer(0x00);
+  tempX = tempX << 8;
+  tempX = tempX | dataIn;
+  x = tempX;
+  Serial.print("x=");
+  Serial.print(tempX);
+
+  dataOut = 0b00000001;
+  dataIn = vspi->transfer(dataOut);
+  dataOut = 0b11100000;
+  dataIn = vspi->transfer(dataOut);
+  unsigned int tempY = dataIn & 0x0F;
+  dataIn = vspi->transfer(0x00);
+  tempY = tempY << 8;
+  tempY = tempY | dataIn;
+  y = tempY;
+  Serial.print(" y=");
+  Serial.println(tempY);
+
+  // input = input << 1;
+  digitalWrite(inputChipSelectPin, HIGH);
+}
+
 /**
  * @brief Arduino loop function
  * "put your main code here, to run repeatedly:"
@@ -240,30 +283,18 @@ void loop()
   // sendWord(buildWord(sensorValue));
   // Serial.println(analogRead(testPin2));
   // delay(1000);
-}
 
-void readInputs()
-{
-  unsigned int dataIn = 0;
-  digitalWrite(inputChipSelectPin, LOW);
-  uint8_t dataOut = 0b00000001;
-  dataIn = vspi->transfer(dataOut);
-  dataOut = 0b10100000;
-  dataIn = vspi->transfer(dataOut);
-  unsigned int tempX = dataIn & 0x0F;
-  dataIn = vspi->transfer(0x00);
-  tempX = tempX << 8;
-  tempX = tempX | dataIn;
+  readInputs();
 
-  dataOut = 0b00000001;
-  dataIn = vspi->transfer(dataOut);
-  dataOut = 0b11100000;
-  dataIn = vspi->transfer(dataOut);
-  unsigned int tempY = dataIn & 0x0F;
-  dataIn = vspi->transfer(0x00);
-  tempY = tempY << 8;
-  tempY = tempY | dataIn;
+  if (reset_state)
+  {
+    Serial.println("Reset");
+    reset_state = false;
+  }
 
-  // input = input << 1;
-  digitalWrite(inputChipSelectPin, HIGH);
+  if (step_state)
+  {
+    Serial.println("Step");
+    step_state = false;
+  }
 }
