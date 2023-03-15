@@ -1,3 +1,22 @@
+//"private" variables
+
+/**
+ * A list of connections to be drawn.
+ */
+var connectionsList = [];
+
+//event handlers
+
+$(document).ready(function () {
+  connectAll("svg1");
+});
+
+$(window).resize(function () {
+  connectAll("svg1");
+});
+
+//"private" functions
+
 /**
  *
  * @param {*} svg
@@ -8,7 +27,7 @@
  * @param {*} endY
  */
 function drawPath(svg, path, startX, startY, endX, endY) {
-  // get the path's stroke width (if one wanted to be  really precise, one could use half the stroke size)
+  // get the path's stroke width
   var stroke = parseFloat(path.attr("stroke-width"));
   // check if the svg is big enough to draw the path, if not, set heigh/width
   if (svg.attr("height") < endY) svg.attr("height", endY);
@@ -222,73 +241,13 @@ function connectElements(svg, path, startElem, endElem) {
 }
 
 /**
- * Creath a new SVG-Path with fixed style options and appends it to the given parent <svg>
- * @param {string} id The id of the new path. Should be unique. (This however is not enforced)
- * @param {string} parentId The parent of the new Node.
- */
-function createPath(id, parentId) {
-  const parentElement = document.getElementById(parentId);
-  const newPath = document.createElementNS(parentElement.namespaceURI, "path");
-
-  newPath.setAttributeNS(null, "id", id);
-  newPath.setAttributeNS(null, "d", "M0 0");
-  newPath.setAttributeNS(null, "stroke", "black");
-  newPath.setAttributeNS(null, "stroke-width", "2px");
-  newPath.setAttributeNS(null, "opacity", 1);
-  newPath.setAttributeNS(null, "fill", "none");
-  newPath.setAttributeNS(null, "marker-end", "url(#pointer)");
-  newPath.setAttributeNS(null, "marker-start", "url(#start)");
-
-  parentElement.appendChild(newPath);
-}
-/**
- * Create a number of paths with {@link createPath()}
- * @param {int} n The number of paths to create.
- * @param {string} parentId The parent of the new Nodes.
- * @param {int} startingIndex Optional: The starting index.
- */
-function createPaths(n, parentId, startingIndex = 0) {
-  for (let index = startingIndex; index <= n + startingIndex; index++) {
-    createPath("path" + index, parentId);
-  }
-}
-
-/**
- * A list of connections to be drawn.
- */
-var connectionsList = [];
-
-/**
- * Adds a connection to {@link connectionsList}.
- * @param {*} from The starting point of the Connection.
- * @param {*} to The End Point of the Connection.
- */
-function addConnection(from, to) {
-  //check list for existing connection
-  if (
-    !connectionsList.find((element) => {
-      return from == element.from && to == element.to;
-    })
-  ) {
-    //if non-existing -> add new
-    connectionsList.push({ from: from, to: to });
-    // console.log(connectionsList);
-    connectAll("svg1");
-  }
-}
-//TO-DO: Delete Connections
-function deleteConnections(from) {
-  connectionsList = connectionsList.filter((element) => from != element.from);
-  connectAll("svg1");
-}
-/**
  * Draws all the connections according to the {@link connectionsList}.
  * @param {*} parentId
  */
 function connectAll(parentId) {
   // reset svg each time
-  //   $("#" + parentId).attr("height", "0");
-  //   $("#" + parentId).attr("width", "0");
+  $("#" + parentId).attr("height", "0");
+  $("#" + parentId).attr("width", "0");
 
   //find out how many paths and connections we have
   const pathCount = $("#" + parentId).children("path").length - 1;
@@ -315,11 +274,64 @@ function connectAll(parentId) {
   }
 }
 
-//add event handlers to the ready and resize events
-$(document).ready(function () {
-  connectAll("svg1");
-});
+/**
+ * Creath a new SVG-Path with fixed style options and appends it to the given parent <svg>
+ * @param {string} id The id of the new path. Should be unique. (This however is not enforced)
+ * @param {string} parentId The parent of the new Node.
+ */
+function createPath(id, parentId) {
+  const parentElement = document.getElementById(parentId);
+  const newPath = document.createElementNS(parentElement.namespaceURI, "path");
 
-$(window).resize(function () {
+  newPath.setAttributeNS(null, "id", id);
+  newPath.setAttributeNS(null, "d", "M0 0");
+  newPath.setAttributeNS(null, "stroke", "black");
+  newPath.setAttributeNS(null, "stroke-width", "2px");
+  newPath.setAttributeNS(null, "opacity", 1);
+  newPath.setAttributeNS(null, "fill", "none");
+  newPath.setAttributeNS(null, "marker-end", "url(#pointer)");
+  newPath.setAttributeNS(null, "marker-start", "url(#start)");
+
+  parentElement.appendChild(newPath);
+}
+
+/**
+ * Create a number of paths with {@link createPath()}
+ * @param {int} n The number of paths to create.
+ * @param {string} parentId The parent of the new Nodes.
+ * @param {int} startingIndex Optional: The starting index.
+ */
+function createPaths(n, parentId, startingIndex = 0) {
+  for (let index = startingIndex; index <= n + startingIndex; index++) {
+    createPath("path" + index, parentId);
+  }
+}
+
+//"public" functions
+
+/**
+ * Adds a connection to {@link connectionsList}.
+ * @param {*} from The starting point of the Connection.
+ * @param {*} to The End Point of the Connection.
+ */
+function addConnection(from, to) {
+  //check list for existing connection
+  if (
+    !connectionsList.find((element) => {
+      return from == element.from && to == element.to;
+    })
+  ) {
+    //if non-existing -> add new
+    connectionsList.push({ from: from, to: to });
+    connectAll("svg1");
+  }
+}
+
+/**
+ * Deletes all connections from a given id
+ * @param {*} from
+ */
+function deleteConnections(from) {
+  connectionsList = connectionsList.filter((element) => from != element.from);
   connectAll("svg1");
-});
+}
