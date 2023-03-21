@@ -23,7 +23,7 @@ class Node
 
 protected:
     valueStruct values;
-    Node *nextNodes[2];
+    int nextNodes[2];
 
 public:
     /**
@@ -58,7 +58,7 @@ public:
      */
     Node getNextNode()
     {
-        return *nextNodes[0];
+        return nextNodes[0];
     };
 
     /**
@@ -70,7 +70,7 @@ public:
      * @param initValueB The value for output A on a scale of -12 zo +12
      * @param initNextNode The pointer to the next Node in the sequence
      */
-    Node(double initValueA = 0, double initValueB = 0, bool initGate = false, bool initTrigger = false, Node *initNextNode = NULL)
+    Node(double initValueA = 0, double initValueB = 0, bool initGate = false, bool initTrigger = false, int initNextNode = -1)
     {
         values.gate = initGate;
         values.trigger = initTrigger;

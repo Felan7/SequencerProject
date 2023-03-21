@@ -34,12 +34,12 @@ public:
      * @param initTrigger The status of the trigger output true = HIGH output
      * @param initValueA The value for output A on a scale of -12 zo +12
      * @param initValueB The value for output A on a scale of -12 zo +12
-     * @param initNextNodeA The next Node in case the condition is true
-     * @param initNextNodeB The next Node in case the condition is false
+     * @param initNextNodeA The next Nodes id in case the condition is true
+     * @param initNextNodeB The next Nodes id in case the condition is false
      * @param initProbability The likeliness of initValueA beeing the next Node
      *
      */
-    ProbabilityStepNode(double initValueA = 0, double initValueB = 0, bool initGate = false, bool initTrigger = false, Node *initNextNodeA = NULL, Node *initNextNode = NULL, double initProbability = 50);
+    ProbabilityStepNode(double initValueA = 0, double initValueB = 0, bool initGate = false, bool initTrigger = false, int initNextNodeA = NULL, int initNextNode = NULL, double initProbability = 50);
 };
 
 #endif

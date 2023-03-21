@@ -8,6 +8,9 @@
 #include "SPIFFS.h" //internal storage
 #include "SPI.h"    //SPI communication
 
+#include <ArduinoJson.h> //JSON
+#include <limits>
+
 // Nodes
 Node seqCurrentNode;
 Node seqNextNode;
@@ -42,10 +45,16 @@ IPAddress subnet(255, 255, 255, 0);
 
 bool reset_state = false;
 bool step_state = false;
+bool load_state = false;
 
 // global input variables
 double x = 0;
 double y = 0;
+
+// JSON string
+String json = "[{\"id\":1,\"a\":\"-1.0241305149841473\",\"b\":\"-1.7591162300913243\",\"gate\":true,\"trigger\":true,\"type\":\"0\",\"nextNodes\":[\"2\",\"-1\"]},{\"id\":2,\"a\":\"2.092339261959495\",\"b\":\"10.550034742090492\",\"gate\":false,\"trigger\":true,\"type\":\"0\",\"nextNodes\":[\"3\",\"-1\"]},{\"id\":3,\"a\":\"-10.430746999304823\",\"b\":\"9.309318380791229\",\"gate\":true,\"trigger\":true,\"type\":\"0\",\"nextNodes\":[\"4\",\"-1\"]},{\"id\":4,\"a\":\"11.882958557279402\",\"b\":\"10.298333446659466\",\"gate\":false,\"trigger\":true,\"type\":\"0\",\"nextNodes\":[\"5\",\"-1\"]},{\"id\":5,\"a\":\"1.406831537341903\",\"b\":\"-5.044896380944483\",\"gate\":false,\"trigger\":false,\"type\":\"0\",\"nextNodes\":[\"6\",\"-1\"]},{\"id\":6,\"a\":\"10.303789138166145\",\"b\":\"-5.219179833451005\",\"gate\":false,\"trigger\":false,\"type\":\"0\",\"nextNodes\":[\"1\",\"-1\"]}]";
+
+JsonArray nodes;
 
 int translateOutputValues(double value)
 {
@@ -116,10 +125,10 @@ void sendWord(word data)
 }
 
 /**
- * @brief Interupt function for the step Input
+ * @brief Interrupt function for the step Input
  * Switches to the nextNode
  */
-void IRAM_ATTR step()
+void IRAM_ATTR interrupt_step()
 {
   // seqCurrentNode = seqNextNode; // overwrite the old current with the new current Node
   // outputData();
@@ -138,7 +147,7 @@ void IRAM_ATTR step()
  * @brief Interupt function for the reset Input
  * Resets the sequence to the starting node.
  */
-void IRAM_ATTR reset()
+void IRAM_ATTR interrupt_reset()
 {
   static unsigned long last_interrupt_time = 0;
   unsigned long interrupt_time = millis();
@@ -151,10 +160,62 @@ void IRAM_ATTR reset()
   // seqNextNode = startNode.getNextNode();
 }
 
-// Replaces placeholder with LED state value
-String processor(const String &var)
+void step()
 {
-  return String();
+  seqCurrentNode = seqNextNode; // overwrite the old current with the new current Node
+  outputData();
+  seqNextNode = seqCurrentNode.getNextNode(); // determine the next Node
+}
+
+void reset()
+{
+  seqCurrentNode = startNode; // overwrite the old current with the new current Node
+  outputData();
+  seqNextNode = startNode.getNextNode(); // determine the next Node
+}
+
+void determineStart()
+{
+  // find lowest id
+  int lowestId = std::numeric_limits<int>::max();
+  for (JsonVariant v : nodes)
+  {
+    if (v["id"].as<int>() < lowestId)
+      ;
+  }
+  JsonObject jsonStartNode = nodes[lowestId];
+  startNode.setValues(jsonStartNode["a"], jsonStartNode["b"], jsonStartNode["trigger"], jsonStartNode["gate"]);
+}
+
+Node nodeFromJson(JsonObject jsonObject)
+{
+  Node newNode;
+  int type = jsonObject["type"];
+  switch (type)
+  {
+  case 0:
+    newNode = new Node(jsonObject["a"], jsonObject["b"], jsonObject["gate"], jsonObject["trigger"], NULL);
+    break;
+
+  default:
+    break;
+  }
+}
+
+void load()
+{
+  DynamicJsonDocument document(4096);
+  DeserializationError error = deserializeJson(document, json);
+  if (error)
+  {
+    Serial.print(F("ERROR: deserializeJson() failed with code "));
+    Serial.println(error.f_str());
+    return;
+  }
+
+  nodes = document.as<JsonArray>();
+
+  determineStart();
 }
 
 /**
@@ -196,7 +257,6 @@ void setup()
   vspi->setBitOrder(MSBFIRST);
   vspi->setDataMode(SPI_MODE3);
   vspi->begin(); // Begin SPI Communication
-  
 
   // Create SoftAP
   WiFi.softAP(ssid, password);
@@ -234,6 +294,8 @@ void setup()
   Serial.println("LOG: HTTP server started");
   Serial.print("LOG: localIP=");
   Serial.println(WiFi.localIP());
+
+  load_state = true; // force loading
 }
 
 void readInputs()
@@ -276,25 +338,24 @@ void readInputs()
  */
 void loop()
 {
-  // int sensorValue = analogRead(testPin1) / 4;
-  // Serial.print("in=");
-  // Serial.print(sensorValue);
-  // Serial.print(" out=");
-  // sendWord(buildWord(sensorValue));
-  // Serial.println(analogRead(testPin2));
-  // delay(1000);
 
-  readInputs();
+  // readInputs();
 
   if (reset_state)
   {
-    Serial.println("Reset");
+    reset();
     reset_state = false;
   }
 
   if (step_state)
   {
-    Serial.println("Step");
+    step();
     step_state = false;
+  }
+
+  if (load_state)
+  {
+    load();
+    load_state = false;
   }
 }

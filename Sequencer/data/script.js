@@ -367,6 +367,10 @@ function dataSubmit() {
   }
 }
 
+function showJson() {
+  window.alert(JSON.stringify(nodes));
+}
+
 /**
  * Updates the Node Cards value
  * @param {*} id the id of the Node Card.

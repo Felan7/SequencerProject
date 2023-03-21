@@ -10,15 +10,15 @@ Node ProbabilityStepNode::getNextNode()
 {
     if (getRandom() <= probability)
     {
-        return nextNodeA;
+        return nextNodes[0];
     }
     else
     {
-        return nextNodeB;
+        return nextNodes[1];
     }
 }
 
-ProbabilityStepNode::ProbabilityStepNode(double initValueA, double initValueB, bool initGate, bool initTrigger, Node *initNextNodeA, Node *initNextNodeB, double initProbability)
+ProbabilityStepNode::ProbabilityStepNode(double initValueA, double initValueB, bool initGate, bool initTrigger, int initNextNodeA, int initNextNodeB, double initProbability)
 {
     values.gate = initGate;
     values.trigger = initTrigger;
