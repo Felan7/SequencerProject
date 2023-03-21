@@ -1,5 +1,5 @@
-#ifndef PROBAILITY_NODE_H
-#define PROBAILITY_NODE_H
+#ifndef PROBABILITY_NODE_H
+#define PROBABILITY_NODE_H
 
 #include <Node.h>
 
@@ -25,7 +25,7 @@ public:
      *
      * @return Node
      */
-    Node getNextNode();
+    int getNextNode();
 
     /**
      * @brief Construct a new Probability Step Node object.
@@ -39,7 +39,7 @@ public:
      * @param initProbability The likeliness of initValueA beeing the next Node
      *
      */
-    ProbabilityStepNode(double initValueA = 0, double initValueB = 0, bool initGate = false, bool initTrigger = false, int initNextNodeA = NULL, int initNextNode = NULL, double initProbability = 50);
+    ProbabilityStepNode(int initId = -1, double initValueA = 0, double initValueB = 0, bool initGate = false, bool initTrigger = false, int initNextNodeA = -1, int initNextNode = -1, double initProbability = 50);
 };
 
 #endif

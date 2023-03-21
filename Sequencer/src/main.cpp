@@ -1,6 +1,8 @@
 #include <Arduino.h>
 
 #include <Node.h>
+#include <ProbabilityStepNode.h>
+#include <ConditionalStepNode.h>
 
 #include <WiFi.h>
 #include <ESPAsyncWebServer.h>
@@ -15,6 +17,9 @@
 Node seqCurrentNode;
 Node seqNextNode;
 Node startNode;
+int SeqCurrentNodeId;
+int seqNextNodeId;
+int startNodeId;
 
 // Inputs
 const int resetPin = 16;          // Reset Input Pin (Interrupt GPIO)
@@ -54,7 +59,8 @@ double y = 0;
 // JSON string
 String json = "[{\"id\":1,\"a\":\"-1.0241305149841473\",\"b\":\"-1.7591162300913243\",\"gate\":true,\"trigger\":true,\"type\":\"0\",\"nextNodes\":[\"2\",\"-1\"]},{\"id\":2,\"a\":\"2.092339261959495\",\"b\":\"10.550034742090492\",\"gate\":false,\"trigger\":true,\"type\":\"0\",\"nextNodes\":[\"3\",\"-1\"]},{\"id\":3,\"a\":\"-10.430746999304823\",\"b\":\"9.309318380791229\",\"gate\":true,\"trigger\":true,\"type\":\"0\",\"nextNodes\":[\"4\",\"-1\"]},{\"id\":4,\"a\":\"11.882958557279402\",\"b\":\"10.298333446659466\",\"gate\":false,\"trigger\":true,\"type\":\"0\",\"nextNodes\":[\"5\",\"-1\"]},{\"id\":5,\"a\":\"1.406831537341903\",\"b\":\"-5.044896380944483\",\"gate\":false,\"trigger\":false,\"type\":\"0\",\"nextNodes\":[\"6\",\"-1\"]},{\"id\":6,\"a\":\"10.303789138166145\",\"b\":\"-5.219179833451005\",\"gate\":false,\"trigger\":false,\"type\":\"0\",\"nextNodes\":[\"1\",\"-1\"]}]";
 
-JsonArray nodes;
+const int NODES_LENGTH = 99;
+Node nodes[NODES_LENGTH];
 
 int translateOutputValues(double value)
 {
@@ -164,37 +170,65 @@ void step()
 {
   seqCurrentNode = seqNextNode; // overwrite the old current with the new current Node
   outputData();
-  seqNextNode = seqCurrentNode.getNextNode(); // determine the next Node
+  seqNextNode = nodes[seqCurrentNode.getNextNode()]; // determine the next Node
 }
 
 void reset()
 {
-  seqCurrentNode = startNode; // overwrite the old current with the new current Node
+  seqCurrentNode = startNode; // overwrite the old current with the start Node
   outputData();
-  seqNextNode = startNode.getNextNode(); // determine the next Node
+  seqNextNode = nodes[startNode.getNextNode()]; // determine the next Node
 }
 
 void determineStart()
 {
+  startNodeId = 1;
+  startNode = nodes[startNodeId];
   // find lowest id
-  int lowestId = std::numeric_limits<int>::max();
-  for (JsonVariant v : nodes)
-  {
-    if (v["id"].as<int>() < lowestId)
-      ;
-  }
-  JsonObject jsonStartNode = nodes[lowestId];
-  startNode.setValues(jsonStartNode["a"], jsonStartNode["b"], jsonStartNode["trigger"], jsonStartNode["gate"]);
+  // int lowestId = std::numeric_limits<int>::max();
+  // for (size_t i = 0; i < NODES_LENGTH; i++)
+  // {
+  //   if (nodes[i] != NULL)
+  //   {
+  //     startNode = i;
+  //     break;
+  //   }
+  // }
 }
 
 Node nodeFromJson(JsonObject jsonObject)
 {
-  Node newNode;
+
   int type = jsonObject["type"];
   switch (type)
   {
   case 0:
-    newNode = new Node(jsonObject["a"], jsonObject["b"], jsonObject["gate"], jsonObject["trigger"], NULL);
+    return Node(
+        jsonObject["id"].as<int>(),
+        jsonObject["a"].as<double>(),
+        jsonObject["b"].as<double>(),
+        jsonObject["gate"].as<bool>(),
+        jsonObject["trigger"].as<bool>(),
+        jsonObject["nextNodes"][0].as<int>());
+    break;
+  case 1:
+    return ProbabilityStepNode(
+        jsonObject["id"].as<int>(),
+        jsonObject["a"].as<double>(),
+        jsonObject["b"].as<double>(),
+        jsonObject["gate"].as<bool>(),
+        jsonObject["trigger"].as<bool>(),
+        jsonObject["nextNodes"][0].as<int>());
+    break;
+
+  case 2:
+    return ConditionalStepNode(
+        jsonObject["id"].as<int>(),
+        jsonObject["a"].as<double>(),
+        jsonObject["b"].as<double>(),
+        jsonObject["gate"].as<bool>(),
+        jsonObject["trigger"].as<bool>(),
+        jsonObject["nextNodes"][0].as<int>());
     break;
 
   default:
@@ -212,9 +246,11 @@ void load()
     Serial.println(error.f_str());
     return;
   }
-
-  nodes = document.as<JsonArray>();
-
+  JsonArray jsonArray = document.as<JsonArray>();
+  for (JsonVariant v : jsonArray)
+  {
+    nodes[v["id"].as<int>()] = nodeFromJson(v);
+  }
   determineStart();
 }
 
@@ -276,7 +312,7 @@ void setup()
       NULL,
       [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total)
       {
-        Serial.println("LOG: POST recieved");
+        Serial.println("LOG: POST received");
         request->send(200);
         for (size_t i = 0; i < len; i++)
         {

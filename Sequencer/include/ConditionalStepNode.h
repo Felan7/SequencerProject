@@ -33,7 +33,7 @@ private:
     bool evaluateCondition(double x, double y);
 
 public:
-    Node getNextNode();
+    int getNextNode();
 
     /**
      * @brief Construct a new Conditional Step Node object.
@@ -48,7 +48,7 @@ public:
      * @param initN The internal, fixed Number n. Can be used for comparisons.
      * @param initMargin The margin for equal checks (Calculated: abs(x - y) < margin)
      */
-    ConditionalStepNode(double initValueA = 0, double initValueB = 0, bool initGate = false, bool initTrigger = false, int initNextNodeA = NULL, int initNextNodeB = NULL, conditionalTypes initConditionalType = X_EQUALS_Y, double initN = 0, double initMargin = 0);
+    ConditionalStepNode(int initId = -1, double initValueA = 0, double initValueB = 0, bool initGate = false, bool initTrigger = false, int initNextNodeA = -1, int initNextNodeB = -1, conditionalTypes initConditionalType = X_EQUALS_Y, double initN = 0, double initMargin = 0);
 };
 
 #endif
