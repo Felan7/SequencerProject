@@ -14,6 +14,13 @@ struct valueStruct
     bool trigger;
     bool gate;
 };
+
+enum nodeType
+{
+    SIMPLE_STEP,
+    PROBABILITY,
+    CONDITIONAL
+};
 /**
  * @brief The root Node object.
  *
@@ -22,11 +29,21 @@ class Node
 {
 
 protected:
-    int id;
     valueStruct values;
     int nextNodes[2];
+    nodeType type;
+    int probability;
+
+    int getRandom()
+    {
+        int random = 1 + (rand() % 100);
+        // Serial.println(random);
+        return random;
+    }
 
 public:
+    int id;
+
     /**
      * @brief Get the Values struct
      *
@@ -60,7 +77,30 @@ public:
      */
     int getNextNode()
     {
-        return nextNodes[0];
+        switch (type)
+        {
+        case SIMPLE_STEP:
+            return nextNodes[0];
+            break;
+        case PROBABILITY:
+            if (getRandom() <= probability)
+            {
+                return nextNodes[0];
+            }
+            else
+            {
+                return nextNodes[1];
+            }
+            break;
+
+        case CONDITIONAL:
+            return nextNodes[0];
+            break;
+
+        default:
+            return nextNodes[0];
+            break;
+        }
     };
 
     /**
@@ -69,18 +109,21 @@ public:
      * @param initId The id of the new node
      * @param initGate The status of the gate output true = HIGH output
      * @param initTrigger The status of the trigger output true = HIGH output
-     * @param initValueA The value for output A on a scale of -12 zo +12
-     * @param initValueB The value for output A on a scale of -12 zo +12
+     * @param initValueA The value for output A on a scale of -5 zo +5
+     * @param initValueB The value for output A on a scale of -5 zo +5
      * @param initNextNode The id of the next Node in the sequence
      */
-    Node(int initId = -1, double initValueA = 0, double initValueB = 0, bool initGate = false, bool initTrigger = false, int initNextNode = -1)
+    Node(int initId = -1, double initValueA = 0, double initValueB = 0, bool initGate = false, bool initTrigger = false, int initNextNodeA = -1, int initNextNodeB = -1, nodeType initType = SIMPLE_STEP, int initProbability = 50)
     {
         id = initId;
-        values.gate = initGate;
-        values.trigger = initTrigger;
         values.valueA = initValueA;
         values.valueB = initValueB;
-        nextNodes[0] = initNextNode;
+        values.gate = initGate;
+        values.trigger = initTrigger;
+        nextNodes[0] = initNextNodeA;
+        nextNodes[1] = initNextNodeB;
+        type = initType;
+        probability = initProbability;
     }
 };
 

@@ -1,8 +1,6 @@
 #include <Arduino.h>
 
 #include <Node.h>
-#include <ProbabilityStepNode.h>
-#include <ConditionalStepNode.h>
 
 #include <WiFi.h>
 #include <ESPAsyncWebServer.h>
@@ -57,7 +55,7 @@ double x = 0;
 double y = 0;
 
 // JSON string
-String json = "[{\"id\":1,\"a\":\"5\",\"b\":\"-1.7591162300913243\",\"gate\":true,\"trigger\":true,\"type\":\"0\",\"nextNodes\":[\"2\",\"-1\"]},{\"id\":2,\"a\":\"-5\",\"b\":\"4.550034742090492\",\"gate\":false,\"trigger\":true,\"type\":\"0\",\"nextNodes\":[\"3\",\"-1\"]},{\"id\":3,\"a\":\"-4.430746999304823\",\"b\":\"3.309318380791229\",\"gate\":true,\"trigger\":true,\"type\":\"0\",\"nextNodes\":[\"4\",\"-1\"]},{\"id\":4,\"a\":\"2.882958557279402\",\"b\":\"3.298333446659466\",\"gate\":false,\"trigger\":true,\"type\":\"0\",\"nextNodes\":[\"5\",\"-1\"]},{\"id\":5,\"a\":\"1.406831537341903\",\"b\":\"-4.944896380944483\",\"gate\":false,\"trigger\":false,\"type\":\"0\",\"nextNodes\":[\"6\",\"-1\"]},{\"id\":6,\"a\":\"2.303789138166145\",\"b\":\"-5.219179833451005\",\"gate\":false,\"trigger\":false,\"type\":\"0\",\"nextNodes\":[\"1\",\"-1\"]}]";
+String json = "[{\"id\":1,\"a\":\"-10.723400702605518\",\"b\":\"-2.192637650019835\",\"gate\":true,\"trigger\":true,\"type\":\"1\",\"nextNodes\":[\"2\",\"3\"]},{\"id\":2,\"a\":\"3.771978910850443\",\"b\":\"7.509817019959371\",\"gate\":true,\"trigger\":true,\"type\":\"0\",\"nextNodes\":[\"1\",\"-1\"]},{\"id\":3,\"a\":\"7.92840489573215\",\"b\":\"9.281641712665706\",\"gate\":true,\"trigger\":false,\"type\":\"0\",\"nextNodes\":[\"1\",\"-1\"]}]";
 
 const int NODES_LENGTH = 99;
 Node nodes[NODES_LENGTH];
@@ -215,33 +213,17 @@ void determineStart()
 
 Node nodeFromJson(JsonObject jsonObject)
 {
-  int type = jsonObject["type"];
-  if (type == 1)
-  {
-    // simple step node
-    Node newNode(
-        jsonObject["id"].as<int>(),
-        jsonObject["a"].as<double>(),
-        jsonObject["b"].as<double>(),
-        jsonObject["gate"].as<bool>(),
-        jsonObject["trigger"].as<bool>(),
-        jsonObject["nextNodes"][0].as<int>());
+  Node newNode(
+      jsonObject["id"].as<int>(),
+      jsonObject["a"].as<double>(),
+      jsonObject["b"].as<double>(),
+      jsonObject["gate"].as<bool>(),
+      jsonObject["trigger"].as<bool>(),
+      jsonObject["nextNodes"][0].as<int>(),
+      jsonObject["nextNodes"][1].as<int>(),
+      static_cast<nodeType>(jsonObject["type"].as<int>()));
 
-    return newNode;
-  }
-  else if (type == 2)
-  {
-    // simple step node
-    Node newNode(
-        jsonObject["id"].as<int>(),
-        jsonObject["a"].as<double>(),
-        jsonObject["b"].as<double>(),
-        jsonObject["gate"].as<bool>(),
-        jsonObject["trigger"].as<bool>(),
-        jsonObject["nextNodes"][0].as<int>());
-
-    return newNode;
-  }
+  return newNode;
 }
 
 void load()

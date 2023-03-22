@@ -312,7 +312,7 @@ function dataSubmit() {
       document.getElementById("next-1").value,
     ],
   };
-  if ($("#type option:selected").val() == 1) {
+  if ($("#type option:selected").val() === 1) {
     node.nextNodes[1] = -1;
   }
 
