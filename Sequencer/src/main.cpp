@@ -8,10 +8,16 @@
 #include "SPIFFS.h" //internal storage
 #include "SPI.h"    //SPI communication
 
+#include <ArduinoJson.h> //JSON
+#include <limits>
+
 // Nodes
 Node seqCurrentNode;
 Node seqNextNode;
 Node startNode;
+int SeqCurrentNodeId;
+int seqNextNodeId;
+int startNodeId;
 
 // Inputs
 const int resetPin = 16;          // Reset Input Pin (Interrupt GPIO)
@@ -42,14 +48,70 @@ IPAddress subnet(255, 255, 255, 0);
 
 bool reset_state = false;
 bool step_state = false;
+bool load_state = false;
 
 // global input variables
 double x = 0;
 double y = 0;
 
+// JSON string
+String json = "[{\"id\":1,\"a\":\"-4.723400702605518\",\"b\":\"-2.192637650019835\",\"gate\":true,\"trigger\":true,\"type\":\"1\",\"nextNodes\":[\"2\",\"3\"]},{\"id\":2,\"a\":\"3.771978910850443\",\"b\":\"7.509817019959371\",\"gate\":true,\"trigger\":true,\"type\":\"0\",\"nextNodes\":[\"1\",\"-1\"]},{\"id\":3,\"a\":\"7.92840489573215\",\"b\":\"9.281641712665706\",\"gate\":true,\"trigger\":false,\"type\":\"0\",\"nextNodes\":[\"1\",\"-1\"]}]";
+
+const int NODES_LENGTH = 99;
+Node nodes[NODES_LENGTH];
+
 int translateOutputValues(double value)
 {
   return (int)value;
+}
+
+word scaleValue(double doubleValue)
+{
+  if (doubleValue < -5)
+  {
+    doubleValue = -5;
+  }
+  else if (doubleValue > 5)
+  {
+    doubleValue = 5;
+  }
+
+  doubleValue += 5;
+
+  return doubleValue * 102.3; // (x - from_min) * (to_max - to_min) / (from_max - from_min) + to_min
+}
+
+word buildWord(double doubleValue, bool writeToB = false)
+{
+
+  word value = scaleValue(doubleValue);
+
+  // B BUF NOT_GAIN NOT_SHDN
+  word mcp_configuration = 0;
+  if (writeToB)
+  {
+    // write to b
+    mcp_configuration = B11010000 << 8;
+  }
+  else
+  {
+    // write to a
+    mcp_configuration = B01010000 << 8;
+  }
+  word returnValue = value << 2;
+
+  returnValue += mcp_configuration;
+
+  return returnValue;
+}
+
+void sendWord(word data)
+{
+  digitalWrite(outputChipSelectPin, LOW); // activate DAC Communication
+
+  hspi->transfer16(data);
+
+  digitalWrite(outputChipSelectPin, HIGH); // deactivate DAC Communication
 }
 
 /**
@@ -78,48 +140,16 @@ void outputData()
   {
     digitalWrite(outputPinGate, LOW);
   }
-}
 
-word buildWord(word value, bool writeToB = false)
-{
-  if (value > 1023)
-  {
-    value = 1023;
-  }
-
-  // B BUF NOT_GAIN NOT_SHDN
-  word mcp_configuration = 0;
-  if (writeToB)
-  {
-    // write to b
-    mcp_configuration = B11010000 << 8;
-  }
-  else
-  {
-    // write to a
-    mcp_configuration = B01110000 << 8;
-  }
-  word returnValue = value << 2;
-
-  returnValue += mcp_configuration;
-
-  return returnValue;
-}
-
-void sendWord(word data)
-{
-  digitalWrite(outputChipSelectPin, LOW); // activate DAC Communication
-
-  hspi->transfer16(data);
-
-  digitalWrite(outputChipSelectPin, HIGH); // deactivate DAC Communication
+  sendWord(buildWord(outputValues.valueA));
+  sendWord(buildWord(outputValues.valueB, true));
 }
 
 /**
- * @brief Interupt function for the step Input
+ * @brief Interrupt function for the step Input
  * Switches to the nextNode
  */
-void IRAM_ATTR step()
+void IRAM_ATTR interrupt_step()
 {
   // seqCurrentNode = seqNextNode; // overwrite the old current with the new current Node
   // outputData();
@@ -138,7 +168,7 @@ void IRAM_ATTR step()
  * @brief Interupt function for the reset Input
  * Resets the sequence to the starting node.
  */
-void IRAM_ATTR reset()
+void IRAM_ATTR interrupt_reset()
 {
   static unsigned long last_interrupt_time = 0;
   unsigned long interrupt_time = millis();
@@ -151,10 +181,70 @@ void IRAM_ATTR reset()
   // seqNextNode = startNode.getNextNode();
 }
 
-// Replaces placeholder with LED state value
-String processor(const String &var)
+void step()
 {
-  return String();
+  seqCurrentNode = seqNextNode; // overwrite the old current with the new current Node
+  outputData();
+  seqNextNode = nodes[seqCurrentNode.getNextNode()]; // determine the next Node
+}
+
+void reset()
+{
+  seqCurrentNode = startNode; // overwrite the old current with the start Node
+  outputData();
+  seqNextNode = nodes[startNode.getNextNode()]; // determine the next Node
+}
+
+void determineStart()
+{
+  startNodeId = 1;
+  startNode = nodes[startNodeId];
+  // TODO: actually find lowest id
+  // int lowestId = std::numeric_limits<int>::max();
+  // for (size_t i = 0; i < NODES_LENGTH; i++)
+  // {
+  //   if (nodes[i] != NULL)
+  //   {
+  //     startNode = i;
+  //     break;
+  //   }
+  // }
+}
+
+Node nodeFromJson(JsonObject jsonObject)
+{
+  Node newNode(
+      jsonObject["id"].as<int>(),
+      jsonObject["a"].as<double>(),
+      jsonObject["b"].as<double>(),
+      jsonObject["gate"].as<bool>(),
+      jsonObject["trigger"].as<bool>(),
+      jsonObject["nextNodes"][0].as<int>(),
+      jsonObject["nextNodes"][1].as<int>(),
+      static_cast<nodeType>(jsonObject["type"].as<int>()));
+
+  return newNode;
+}
+
+void load()
+{
+  DynamicJsonDocument document(4096);
+  DeserializationError error = deserializeJson(document, json);
+  if (error)
+  {
+    Serial.print(F("ERROR: deserializeJson() failed with code "));
+    Serial.println(error.f_str());
+  }
+  else
+  {
+    JsonArray jsonArray = document.as<JsonArray>();
+    for (JsonVariant v : jsonArray)
+    {
+      nodes[v["id"].as<int>()] = nodeFromJson(v);
+    }
+    determineStart();
+    reset();
+  }
 }
 
 /**
@@ -164,10 +254,10 @@ String processor(const String &var)
 void setup()
 {
   pinMode(resetPin, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(resetPin), reset, FALLING);
+  attachInterrupt(digitalPinToInterrupt(resetPin), interrupt_reset, FALLING);
 
   pinMode(stepPin, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(stepPin), step, FALLING);
+  attachInterrupt(digitalPinToInterrupt(stepPin), interrupt_step, FALLING);
 
   pinMode(inputChipSelectPin, OUTPUT);
   digitalWrite(inputChipSelectPin, HIGH);
@@ -196,7 +286,6 @@ void setup()
   vspi->setBitOrder(MSBFIRST);
   vspi->setDataMode(SPI_MODE3);
   vspi->begin(); // Begin SPI Communication
-  
 
   // Create SoftAP
   WiFi.softAP(ssid, password);
@@ -216,7 +305,7 @@ void setup()
       NULL,
       [](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total)
       {
-        Serial.println("LOG: POST recieved");
+        Serial.println("LOG: POST received");
         request->send(200);
         for (size_t i = 0; i < len; i++)
         {
@@ -234,6 +323,8 @@ void setup()
   Serial.println("LOG: HTTP server started");
   Serial.print("LOG: localIP=");
   Serial.println(WiFi.localIP());
+
+  load_state = true; // force loading
 }
 
 void readInputs()
@@ -276,25 +367,24 @@ void readInputs()
  */
 void loop()
 {
-  // int sensorValue = analogRead(testPin1) / 4;
-  // Serial.print("in=");
-  // Serial.print(sensorValue);
-  // Serial.print(" out=");
-  // sendWord(buildWord(sensorValue));
-  // Serial.println(analogRead(testPin2));
-  // delay(1000);
 
-  readInputs();
+  // readInputs();
 
   if (reset_state)
   {
-    Serial.println("Reset");
+    reset();
     reset_state = false;
   }
 
   if (step_state)
   {
-    Serial.println("Step");
+    step();
     step_state = false;
+  }
+
+  if (load_state)
+  {
+    load();
+    load_state = false;
   }
 }

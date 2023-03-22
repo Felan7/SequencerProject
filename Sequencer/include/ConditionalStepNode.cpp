@@ -48,7 +48,7 @@ bool ConditionalStepNode::evaluateCondition(double x, double y)
     }
 }
 
-Node ConditionalStepNode::getNextNode()
+int ConditionalStepNode::getNextNode()
 {
     // analogRead()
 
@@ -57,16 +57,17 @@ Node ConditionalStepNode::getNextNode()
 
     if (evaluateCondition(x, y))
     {
-        return *nextNodes[0];
+        return nextNodes[0];
     }
     else
     {
-        return *nextNodes[1];
+        return nextNodes[1];
     }
 }
 
-ConditionalStepNode::ConditionalStepNode(double initValueA, double initValueB, bool initGate, bool initTrigger, Node *initNextNodeA, Node *initNextNodeB, conditionalTypes initConditionalType, double initN, double initMargin)
+ConditionalStepNode::ConditionalStepNode(int initId, double initValueA, double initValueB, bool initGate, bool initTrigger, int initNextNodeA, int initNextNodeB, conditionalTypes initConditionalType, double initN, double initMargin)
 {
+    id = initId;
     values.gate = initGate;
     values.trigger = initTrigger;
     values.valueA = initValueA;

@@ -1,5 +1,8 @@
 {
     "cSpell.words": [
         "vspi"
+    ],
+    "cSpell.ignoreWords": [
+        "hspi"
     ]
 }

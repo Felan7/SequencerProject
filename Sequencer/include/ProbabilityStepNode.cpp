@@ -6,20 +6,21 @@ int ProbabilityStepNode::getRandom()
     // TODO: actually random
 }
 
-Node ProbabilityStepNode::getNextNode()
+int ProbabilityStepNode::getNextNode()
 {
     if (getRandom() <= probability)
     {
-        return nextNodeA;
+        return nextNodes[0];
     }
     else
     {
-        return nextNodeB;
+        return nextNodes[1];
     }
 }
 
-ProbabilityStepNode::ProbabilityStepNode(double initValueA, double initValueB, bool initGate, bool initTrigger, Node *initNextNodeA, Node *initNextNodeB, double initProbability)
+ProbabilityStepNode::ProbabilityStepNode(int initId, double initValueA, double initValueB, bool initGate, bool initTrigger, int initNextNodeA, int initNextNodeB, double initProbability)
 {
+    id = initId;
     values.gate = initGate;
     values.trigger = initTrigger;
     values.valueA = initValueA;

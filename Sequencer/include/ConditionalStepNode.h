@@ -33,7 +33,7 @@ private:
     bool evaluateCondition(double x, double y);
 
 public:
-    Node getNextNode();
+    int getNextNode();
 
     /**
      * @brief Construct a new Conditional Step Node object.
@@ -42,13 +42,13 @@ public:
      * @param initTrigger The status of the trigger output true = HIGH output
      * @param initValueA The value for output A on a scale of -12 zo +12
      * @param initValueB The value for output A on a scale of -12 zo +12
-     * @param initNextNodeA The next Node in case the condition is true
-     * @param initNextNodeB The next Node in case the condition is false
+     * @param initNextNodeA The next Nodes id in case the condition is true
+     * @param initNextNodeB The next Nodes id in case the condition is false
      * @param initConditionalType The type of condition to check
-     * @param initN The internal, fixed Number n. Can be used for comparrisons.
+     * @param initN The internal, fixed Number n. Can be used for comparisons.
      * @param initMargin The margin for equal checks (Calculated: abs(x - y) < margin)
      */
-    ConditionalStepNode(double initValueA = 0, double initValueB = 0, bool initGate = false, bool initTrigger = false, Node *initNextNodeA = NULL, Node *initNextNodeB = NULL, conditionalTypes initConditionalType = X_EQUALS_Y, double initN = 0, double initMargin = 0);
+    ConditionalStepNode(int initId = -1, double initValueA = 0, double initValueB = 0, bool initGate = false, bool initTrigger = false, int initNextNodeA = -1, int initNextNodeB = -1, conditionalTypes initConditionalType = X_EQUALS_Y, double initN = 0, double initMargin = 0);
 };
 
 #endif
