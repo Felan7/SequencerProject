@@ -57,7 +57,7 @@ double x = 0;
 double y = 0;
 
 // JSON string
-String json = "[{\"id\":1,\"a\":\"-1.0241305149841473\",\"b\":\"-1.7591162300913243\",\"gate\":true,\"trigger\":true,\"type\":\"0\",\"nextNodes\":[\"2\",\"-1\"]},{\"id\":2,\"a\":\"2.092339261959495\",\"b\":\"10.550034742090492\",\"gate\":false,\"trigger\":true,\"type\":\"0\",\"nextNodes\":[\"3\",\"-1\"]},{\"id\":3,\"a\":\"-10.430746999304823\",\"b\":\"9.309318380791229\",\"gate\":true,\"trigger\":true,\"type\":\"0\",\"nextNodes\":[\"4\",\"-1\"]},{\"id\":4,\"a\":\"11.882958557279402\",\"b\":\"10.298333446659466\",\"gate\":false,\"trigger\":true,\"type\":\"0\",\"nextNodes\":[\"5\",\"-1\"]},{\"id\":5,\"a\":\"1.406831537341903\",\"b\":\"-5.044896380944483\",\"gate\":false,\"trigger\":false,\"type\":\"0\",\"nextNodes\":[\"6\",\"-1\"]},{\"id\":6,\"a\":\"10.303789138166145\",\"b\":\"-5.219179833451005\",\"gate\":false,\"trigger\":false,\"type\":\"0\",\"nextNodes\":[\"1\",\"-1\"]}]";
+String json = "[{\"id\":1,\"a\":\"5\",\"b\":\"-1.7591162300913243\",\"gate\":true,\"trigger\":true,\"type\":\"0\",\"nextNodes\":[\"2\",\"-1\"]},{\"id\":2,\"a\":\"-5\",\"b\":\"4.550034742090492\",\"gate\":false,\"trigger\":true,\"type\":\"0\",\"nextNodes\":[\"3\",\"-1\"]},{\"id\":3,\"a\":\"-4.430746999304823\",\"b\":\"3.309318380791229\",\"gate\":true,\"trigger\":true,\"type\":\"0\",\"nextNodes\":[\"4\",\"-1\"]},{\"id\":4,\"a\":\"2.882958557279402\",\"b\":\"3.298333446659466\",\"gate\":false,\"trigger\":true,\"type\":\"0\",\"nextNodes\":[\"5\",\"-1\"]},{\"id\":5,\"a\":\"1.406831537341903\",\"b\":\"-4.944896380944483\",\"gate\":false,\"trigger\":false,\"type\":\"0\",\"nextNodes\":[\"6\",\"-1\"]},{\"id\":6,\"a\":\"2.303789138166145\",\"b\":\"-5.219179833451005\",\"gate\":false,\"trigger\":false,\"type\":\"0\",\"nextNodes\":[\"1\",\"-1\"]}]";
 
 const int NODES_LENGTH = 99;
 Node nodes[NODES_LENGTH];
@@ -65,6 +65,55 @@ Node nodes[NODES_LENGTH];
 int translateOutputValues(double value)
 {
   return (int)value;
+}
+
+word scaleValue(double doubleValue)
+{
+  if (doubleValue < -5)
+  {
+    doubleValue = -5;
+  }
+  else if (doubleValue > 5)
+  {
+    doubleValue = 5;
+  }
+
+  doubleValue += 5;
+
+  return doubleValue * 102.3; // (x - from_min) * (to_max - to_min) / (from_max - from_min) + to_min
+}
+
+word buildWord(double doubleValue, bool writeToB = false)
+{
+
+  word value = scaleValue(doubleValue);
+
+  // B BUF NOT_GAIN NOT_SHDN
+  word mcp_configuration = 0;
+  if (writeToB)
+  {
+    // write to b
+    mcp_configuration = B11010000 << 8;
+  }
+  else
+  {
+    // write to a
+    mcp_configuration = B01010000 << 8;
+  }
+  word returnValue = value << 2;
+
+  returnValue += mcp_configuration;
+
+  return returnValue;
+}
+
+void sendWord(word data)
+{
+  digitalWrite(outputChipSelectPin, LOW); // activate DAC Communication
+
+  hspi->transfer16(data);
+
+  digitalWrite(outputChipSelectPin, HIGH); // deactivate DAC Communication
 }
 
 /**
@@ -93,41 +142,9 @@ void outputData()
   {
     digitalWrite(outputPinGate, LOW);
   }
-}
 
-word buildWord(word value, bool writeToB = false)
-{
-  if (value > 1023)
-  {
-    value = 1023;
-  }
-
-  // B BUF NOT_GAIN NOT_SHDN
-  word mcp_configuration = 0;
-  if (writeToB)
-  {
-    // write to b
-    mcp_configuration = B11010000 << 8;
-  }
-  else
-  {
-    // write to a
-    mcp_configuration = B01110000 << 8;
-  }
-  word returnValue = value << 2;
-
-  returnValue += mcp_configuration;
-
-  return returnValue;
-}
-
-void sendWord(word data)
-{
-  digitalWrite(outputChipSelectPin, LOW); // activate DAC Communication
-
-  hspi->transfer16(data);
-
-  digitalWrite(outputChipSelectPin, HIGH); // deactivate DAC Communication
+  sendWord(buildWord(outputValues.valueA));
+  sendWord(buildWord(outputValues.valueB, true));
 }
 
 /**
@@ -184,7 +201,7 @@ void determineStart()
 {
   startNodeId = 1;
   startNode = nodes[startNodeId];
-  // find lowest id
+  // TODO: actually find lowest id
   // int lowestId = std::numeric_limits<int>::max();
   // for (size_t i = 0; i < NODES_LENGTH; i++)
   // {
@@ -198,41 +215,32 @@ void determineStart()
 
 Node nodeFromJson(JsonObject jsonObject)
 {
-
   int type = jsonObject["type"];
-  switch (type)
+  if (type == 1)
   {
-  case 0:
-    return Node(
+    // simple step node
+    Node newNode(
         jsonObject["id"].as<int>(),
         jsonObject["a"].as<double>(),
         jsonObject["b"].as<double>(),
         jsonObject["gate"].as<bool>(),
         jsonObject["trigger"].as<bool>(),
         jsonObject["nextNodes"][0].as<int>());
-    break;
-  case 1:
-    return ProbabilityStepNode(
-        jsonObject["id"].as<int>(),
-        jsonObject["a"].as<double>(),
-        jsonObject["b"].as<double>(),
-        jsonObject["gate"].as<bool>(),
-        jsonObject["trigger"].as<bool>(),
-        jsonObject["nextNodes"][0].as<int>());
-    break;
 
-  case 2:
-    return ConditionalStepNode(
+    return newNode;
+  }
+  else if (type == 2)
+  {
+    // simple step node
+    Node newNode(
         jsonObject["id"].as<int>(),
         jsonObject["a"].as<double>(),
         jsonObject["b"].as<double>(),
         jsonObject["gate"].as<bool>(),
         jsonObject["trigger"].as<bool>(),
         jsonObject["nextNodes"][0].as<int>());
-    break;
 
-  default:
-    break;
+    return newNode;
   }
 }
 
@@ -244,14 +252,17 @@ void load()
   {
     Serial.print(F("ERROR: deserializeJson() failed with code "));
     Serial.println(error.f_str());
-    return;
   }
-  JsonArray jsonArray = document.as<JsonArray>();
-  for (JsonVariant v : jsonArray)
+  else
   {
-    nodes[v["id"].as<int>()] = nodeFromJson(v);
+    JsonArray jsonArray = document.as<JsonArray>();
+    for (JsonVariant v : jsonArray)
+    {
+      nodes[v["id"].as<int>()] = nodeFromJson(v);
+    }
+    determineStart();
+    reset();
   }
-  determineStart();
 }
 
 /**
@@ -261,10 +272,10 @@ void load()
 void setup()
 {
   pinMode(resetPin, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(resetPin), reset, FALLING);
+  attachInterrupt(digitalPinToInterrupt(resetPin), interrupt_reset, FALLING);
 
   pinMode(stepPin, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(stepPin), step, FALLING);
+  attachInterrupt(digitalPinToInterrupt(stepPin), interrupt_step, FALLING);
 
   pinMode(inputChipSelectPin, OUTPUT);
   digitalWrite(inputChipSelectPin, HIGH);
