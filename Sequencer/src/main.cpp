@@ -55,7 +55,7 @@ double x = 0;
 double y = 0;
 
 // JSON string
-String json = "[{\"id\":1,\"a\":\"-10.723400702605518\",\"b\":\"-2.192637650019835\",\"gate\":true,\"trigger\":true,\"type\":\"1\",\"nextNodes\":[\"2\",\"3\"]},{\"id\":2,\"a\":\"3.771978910850443\",\"b\":\"7.509817019959371\",\"gate\":true,\"trigger\":true,\"type\":\"0\",\"nextNodes\":[\"1\",\"-1\"]},{\"id\":3,\"a\":\"7.92840489573215\",\"b\":\"9.281641712665706\",\"gate\":true,\"trigger\":false,\"type\":\"0\",\"nextNodes\":[\"1\",\"-1\"]}]";
+String json = "[{\"id\":1,\"a\":\"-4.723400702605518\",\"b\":\"-2.192637650019835\",\"gate\":true,\"trigger\":true,\"type\":\"1\",\"nextNodes\":[\"2\",\"3\"]},{\"id\":2,\"a\":\"3.771978910850443\",\"b\":\"7.509817019959371\",\"gate\":true,\"trigger\":true,\"type\":\"0\",\"nextNodes\":[\"1\",\"-1\"]},{\"id\":3,\"a\":\"7.92840489573215\",\"b\":\"9.281641712665706\",\"gate\":true,\"trigger\":false,\"type\":\"0\",\"nextNodes\":[\"1\",\"-1\"]}]";
 
 const int NODES_LENGTH = 99;
 Node nodes[NODES_LENGTH];
