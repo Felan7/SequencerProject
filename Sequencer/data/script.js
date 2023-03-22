@@ -68,16 +68,6 @@ function formatNumber(number) {
   return returnString;
 }
 
-function randomInt(upper) {
-  return Math.floor(Math.random() * upper);
-}
-
-function randomColor() {
-  return (
-    "rgb(" + randomInt(255) + "," + randomInt(255) + "," + randomInt(255) + ")"
-  );
-}
-
 function hideMenu() {
   $("#side-menu").hide();
 }
@@ -99,6 +89,10 @@ function switchEditWindowNode(id) {
   readDataFromArray(id);
 }
 
+function randomInt(upper) {
+  return Math.floor(Math.random() * upper);
+}
+
 function randomInRange(min, max) {
   return Math.random() < 0.5
     ? (1 - Math.random()) * (max - min) + min
@@ -107,6 +101,12 @@ function randomInRange(min, max) {
 
 function randomBoolean() {
   return Math.random() > 0.5;
+}
+
+function randomColor() {
+  return (
+    "rgb(" + randomInt(255) + "," + randomInt(255) + "," + randomInt(255) + ")"
+  );
 }
 
 function modeSelected() {
@@ -133,6 +133,8 @@ function allowDrop(ev) {
 function drag(ev) {
   ev.dataTransfer.setData("text", ev.target.id);
 }
+
+//
 
 function createNodeCard(
   id,
@@ -367,6 +369,24 @@ function dataSubmit() {
   }
 }
 
+function createNewNode() {
+  var newNode = {
+    id: nextFreeId,
+    a: 0,
+    b: 0,
+    gate: 0,
+    trigger: 0,
+    type: 0,
+    nextNodes: [-1, -1],
+  };
+  nextFreeId++;
+  nodes.push(newNode);
+  $("#leRow").append(createNodeCard(newNode.id));
+  $("#next-0").append("<option>" + newNode.id + "</option>");
+  $("#next-1").append("<option>" + newNode.id + "</option>");
+  $("#" + newNode.id).click();
+}
+
 /**
  * Updates the Node Cards value
  * @param {*} id the id of the Node Card.
@@ -383,16 +403,15 @@ function updateNodeCard(id, nodeData) {
 
 function writeToDevice() {
   console.log(JSON.stringify(nodes));
-  $.ajax(
-    {
-      type: "POST",
-      url: "/post",
-      data: JSON.stringify(nodes),
-      success: function () {
-        console.log("POST done");
-      },
-      dataType: "json"
-    })
+  $.ajax({
+    type: "POST",
+    url: "/post",
+    data: JSON.stringify(nodes),
+    success: function () {
+      console.log("POST done");
+    },
+    dataType: "json",
+  })
     .done(function () {
       console.log("second success");
     })
@@ -416,22 +435,4 @@ function randomizeValues() {
   };
 
   setEditor(node);
-}
-
-function createNewNode() {
-  var newNode = {
-    id: nextFreeId,
-    a: 0,
-    b: 0,
-    gate: 0,
-    trigger: 0,
-    type: 0,
-    nextNodes: [-1, -1],
-  };
-  nextFreeId++;
-  nodes.push(newNode);
-  $("#leRow").append(createNodeCard(newNode.id));
-  $("#next-0").append("<option>" + newNode.id + "</option>");
-  $("#next-1").append("<option>" + newNode.id + "</option>");
-  $("#" + newNode.id).click();
 }
