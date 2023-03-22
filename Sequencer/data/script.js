@@ -411,8 +411,8 @@ function writeToDevice() {
 function randomizeValues() {
   var node = {
     id: document.getElementById("uid").value,
-    a: randomInRange(-12, 12),
-    b: randomInRange(-12, 12),
+    a: randomInRange(-5, 5),
+    b: randomInRange(-5, 5),
     gate: randomBoolean(),
     trigger: randomBoolean(),
     type: 0,
