@@ -2,6 +2,7 @@
 #define NODE_H
 
 #include <stdlib.h>
+#include <time.h> // time
 
 /**
  * @brief The structured musical data of a node.
@@ -36,6 +37,7 @@ protected:
 
     int getRandom()
     {
+        srand(time(NULL));
         int random = 1 + (rand() % 100);
         // Serial.println(random);
         return random;
