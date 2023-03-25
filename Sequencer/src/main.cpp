@@ -12,12 +12,12 @@
 #include <limits>
 
 // Nodes
-Node seqCurrentNode;
-Node seqNextNode;
-Node startNode;
-int SeqCurrentNodeId;
-int seqNextNodeId;
-int startNodeId;
+Node seqCurrentNode;  // the current node if the sequence
+Node seqNextNode;     // the next node if the sequence
+Node startNode;       // the start node of the sequence
+int SeqCurrentNodeId; // the id of the current node if the sequence
+int seqNextNodeId;    // the id of the next node if the sequence
+int startNodeId;      // the id of the start node of the sequence
 
 // Inputs
 const int resetPin = 16;          // Reset Input Pin (Interrupt GPIO)
@@ -25,27 +25,26 @@ const int stepPin = 17;           // Step Input Pin (Interrupt GPIO)
 const int inputChipSelectPin = 5; // input SPI chip select pin
 
 // Outputs
-const int outputPinTrigger = 2;     // TODO: find real pin number
-const int outputPinGate = 15;       // TODO: find real pin number
+const int outputPinTrigger = 2;     // pin for the trigger outout
+const int outputPinGate = 15;       // pin for the trigger outout
 const int outputChipSelectPin = 22; // output SPI chip select pin
-
-// Variable to store the HTTP request
-String header;
 
 // SPI
 SPIClass *hspi = NULL;
 SPIClass *vspi = NULL;
 
-// SSID & Password
-const char *ssid = "ESP32";      // Enter your SSID here
-const char *password = "secret"; // Enter your Password here
-AsyncWebServer server(80);       // Object of WebServer(HTTP port, 80 is default)
+// Web
+const char *ssid = "ESP32";                  // Enter your SSID here
+const char *password = "verySecretPassword"; // Enter your Password here
+AsyncWebServer server(80);                   // Object of WebServer(HTTP port, 80 is default)
+String header;                               // Variable to store the HTTP request
 
 // IP Address details
 IPAddress local_ip(192, 168, 1, 1);
 IPAddress gateway(192, 168, 1, 1);
 IPAddress subnet(255, 255, 255, 0);
 
+// state flags
 bool reset_state = false;
 bool step_state = false;
 bool load_state = false;
@@ -60,11 +59,12 @@ String json = "[{\"id\":1,\"a\":\"-4.723400702605518\",\"b\":\"-2.19263765001983
 const int NODES_LENGTH = 99;
 Node nodes[NODES_LENGTH];
 
-int translateOutputValues(double value)
-{
-  return (int)value;
-}
-
+/**
+ * @brief Takes a double Vlaue and prepares it for sending to the DAC
+ *
+ * @param doubleValue the input value. Clipped to a scale between -5 and 5
+ * @return word The DAC-ready output. A single 16 bit word containg a value scale from 0 to 1023
+ */
 word scaleValue(double doubleValue)
 {
   if (doubleValue < -5)
@@ -81,6 +81,13 @@ word scaleValue(double doubleValue)
   return doubleValue * 102.3; // (x - from_min) * (to_max - to_min) / (from_max - from_min) + to_min
 }
 
+/**
+ * @brief Takes the input double value and combines it with the DAC configuation flags.
+ * Uses the scaleValue()-function.
+ * @param doubleValue
+ * @param writeToB Wether to write to DAC-channel A (default=false) or B (true)
+ * @return word
+ */
 word buildWord(double doubleValue, bool writeToB = false)
 {
 
@@ -342,8 +349,6 @@ void readInputs()
   tempX = tempX << 8;
   tempX = tempX | dataIn;
   x = tempX;
-  Serial.print("x=");
-  Serial.print(tempX);
 
   dataOut = 0b00000001;
   dataIn = vspi->transfer(dataOut);
@@ -354,8 +359,6 @@ void readInputs()
   tempY = tempY << 8;
   tempY = tempY | dataIn;
   y = tempY;
-  Serial.print(" y=");
-  Serial.println(tempY);
 
   // input = input << 1;
   digitalWrite(inputChipSelectPin, HIGH);
@@ -368,7 +371,7 @@ void readInputs()
 void loop()
 {
 
-  // readInputs();
+  readInputs();
 
   if (reset_state)
   {
